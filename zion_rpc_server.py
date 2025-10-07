@@ -20,23 +20,27 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from new_zion_blockchain import NewZionBlockchain
 from crypto_utils import generate_keypair, verify_transaction_signature, tx_hash
+from seednodes import ZionNetworkConfig, get_rpc_port
 
 logger = logging.getLogger(__name__)
 
 class ZIONRPCServer:
     """HTTP RPC server for ZION blockchain"""
 
-    def __init__(self, blockchain: 'NewZionBlockchain', host: str = '0.0.0.0', port: int = 8332, require_auth: bool = True, auth_token: Optional[str] = None,
-                 rate_limit_per_minute: int = 120, burst_limit: int = 20, burst_window_seconds: int = 5):
+    def __init__(self, blockchain: 'NewZionBlockchain', host: str = None, port: int = None, require_auth: bool = None, auth_token: Optional[str] = None,
+                 rate_limit_per_minute: int = None, burst_limit: int = None, burst_window_seconds: int = None):
+        # Use centralized configuration
+        rpc_config = ZionNetworkConfig.RPC_CONFIG
+        
         self.blockchain = blockchain
-        self.host = host
-        self.port = port
+        self.host = host or rpc_config['host']
+        self.port = port or rpc_config['port']
         self.server = None
         self.running = False
-        self.require_auth = require_auth
-        self.rate_limit_per_minute = rate_limit_per_minute
-        self.burst_limit = burst_limit
-        self.burst_window_seconds = burst_window_seconds
+        self.require_auth = require_auth if require_auth is not None else rpc_config['require_auth']
+        self.rate_limit_per_minute = rate_limit_per_minute or rpc_config['rate_limit_per_minute']
+        self.burst_limit = burst_limit or rpc_config['burst_limit']
+        self.burst_window_seconds = burst_window_seconds or 5
         # Determine auth token
         if self.require_auth:
             tok = auth_token or os.environ.get('ZION_RPC_TOKEN')

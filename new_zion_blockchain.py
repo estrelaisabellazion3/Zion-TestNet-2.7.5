@@ -19,22 +19,26 @@ import math
 from zion_p2p_network import ZIONP2PNetwork
 from zion_rpc_server import ZIONRPCServer
 from crypto_utils import tx_hash
+from seednodes import ZionNetworkConfig, get_premine_addresses, get_p2p_port, get_rpc_port, get_max_supply, get_dao_config
 
 class NewZionBlockchain:
     """Nový ZION blockchain s novými premine adresami a persistent storage"""
     
-    def __init__(self, db_file="zion_blockchain.db", enable_p2p=True, p2p_port=8333, enable_rpc=True, rpc_port=8332):
-        self.db_file = db_file
+    def __init__(self, db_file=None, enable_p2p=True, p2p_port=None, enable_rpc=True, rpc_port=None):
+        # Use centralized configuration
+        config = ZionNetworkConfig.BLOCKCHAIN_CONFIG
+        self.db_file = db_file or config['db_file']
+        
         self.lock = threading.Lock()
         self._init_database()
         self.blocks = self._load_blocks_from_db()
         # Persistent mempool & nonces will be loaded from DB (fallback to empty)
         self.pending_transactions: List[Dict] = []
         self.nonces: Dict[str, int] = {}
-        # Difficulty and reward parameters (could be externalized later)
-        self.mining_difficulty = 4
-        self.block_reward = 50  # Základní hodnota – TODO: implementovat dynamické snižování
-        self.premine_addresses = self._get_new_addresses()
+        # Use centralized configuration values
+        self.mining_difficulty = config['mining_difficulty']
+        self.block_reward = config['block_reward']
+        self.premine_addresses = get_premine_addresses()
         self.balances = self._load_balances_from_db()
         
         if not self.blocks:
@@ -43,21 +47,23 @@ class NewZionBlockchain:
         self._load_nonces_from_db()
         self.pending_transactions = self._load_mempool_from_db()
         
-        # P2P Network
+        # P2P Network with centralized configuration
         self.p2p_network = None
         if enable_p2p:
+            p2p_port = p2p_port or get_p2p_port()
             self.p2p_network = ZIONP2PNetwork(self, port=p2p_port)
         
-        # RPC Server
+        # RPC Server with centralized configuration  
         self.rpc_server = None
         if enable_rpc:
+            rpc_port = rpc_port or get_rpc_port()
             self.rpc_server = ZIONRPCServer(self, port=rpc_port)
-        # Security / consensus timing parameters
-        self.mtp_window = 11  # number of blocks for median-time-past
-        self.max_future_drift = 7200  # seconds (2h)
+        # Security / consensus timing parameters from centralized config
+        self.mtp_window = config['mtp_window']
+        self.max_future_drift = config['max_future_drift']
         self.invalid_timestamps = 0  # counter for metrics
         self.reorg_events = 0  # count multi-block reorgs (for future metrics)
-        self.max_reorg_depth = 50
+        self.max_reorg_depth = config['max_reorg_depth']
         # In-memory cumulative work tracking (not persisted) – compute after genesis ensured
         self._recompute_cumulative_work(0)
         
@@ -262,59 +268,9 @@ class NewZionBlockchain:
             conn.commit()
     
     def _get_new_addresses(self) -> Dict:
-        """Nově vygenerované adresy pro premine"""
-        return {
-            'ZION_SACRED_B0FA7E2A234D8C2F08545F02295C98': {
-                'purpose': 'Sacred Mining Operator',
-                'amount': 2_000_000_000,
-                'type': 'mining'
-            },
-            'ZION_QUANTUM_89D80B129682D41AD76DAE3F90C3E2': {
-                'purpose': 'Quantum Mining Operator', 
-                'amount': 2_000_000_000,
-                'type': 'mining'
-            },
-            'ZION_COSMIC_397B032D6E2D3156F6F709E8179D36': {
-                'purpose': 'Cosmic Mining Operator',
-                'amount': 2_000_000_000,
-                'type': 'mining'
-            },
-            'ZION_ENLIGHTENED_004A5DBD12FDCAACEDCB5384DDC035': {
-                'purpose': 'Enlightened Mining Operator',
-                'amount': 2_000_000_000,
-                'type': 'mining'
-            },
-            'ZION_TRANSCENDENT_6BD30CB1835013503A8167D9CD86E0': {
-                'purpose': 'Transcendent Mining Operator',
-                'amount': 2_000_000_000,
-                'type': 'mining'
-            },
-            'ZION_DEVELOPMENT_TEAM_FUND_378614887FEA27791540F45': {
-                'purpose': 'Development Team Fund',
-                'amount': 1_440_000_000,
-                'type': 'development'
-            },
-            'ZION_NETWORK_INFRASTRUCTURE_SITA_B5F3BE9968A1D90': {
-                'purpose': 'Network Infrastructure (SITA)',
-                'amount': 999_000_000,
-                'type': 'infrastructure'
-            },
-            'ZION_CHILDREN_FUTURE_FUND_1ECCB72BC30AADD086656A59': {
-                'purpose': 'Children Future Fund',
-                'amount': 999_000_000,
-                'type': 'charity'
-            },
-            'ZION_MAITREYA_BUDDHA_D7A371ABD1FF1C5D42AB02AAE4F57': {
-                'purpose': 'Network Administrator',
-                'amount': 999_000_000,
-                'type': 'admin'
-            },
-            'ZION_ON_THE_STAR_0B461AB5BCACC40D1ECE95A2D82030': {
-                'purpose': 'Genesis Reward',
-                'amount': 333_000_000,
-                'type': 'genesis'
-            }
-        }
+        """DEPRECATED: Use centralized seednodes.py configuration"""
+        # Return centralized premine addresses
+        return get_premine_addresses()
     
     def _create_genesis_block(self):
         """Create and save genesis block with premine distribution"""

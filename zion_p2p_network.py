@@ -17,6 +17,8 @@ import hashlib
 if TYPE_CHECKING:
     from new_zion_blockchain import NewZionBlockchain
 
+from seednodes import ZionNetworkConfig, get_seed_nodes, get_p2p_port
+
 logger = logging.getLogger(__name__)
 
 @dataclass
@@ -61,27 +63,24 @@ class NetworkMessage:
 class ZIONP2PNetwork:
     """P2P network for ZION blockchain consensus"""
 
-    def __init__(self, blockchain: 'NewZionBlockchain', host: str = '0.0.0.0', port: int = 8333):
+    def __init__(self, blockchain: 'NewZionBlockchain', host: str = '0.0.0.0', port: int = None):
         self.blockchain = blockchain
         self.host = host
-        self.port = port
+        self.port = port or get_p2p_port()
         self.peers: Dict[str, Peer] = {}
         self.server = None
         self.running = False
         # Map peer_key -> writer for outbound messaging
         self._peer_writers: Dict[str, asyncio.StreamWriter] = {}
 
-        # Network configuration
-        self.max_peers = 10
-        self.ping_interval = 30  # seconds
-        self.peer_timeout = 300  # 5 minutes
+        # Network configuration from centralized config
+        p2p_config = ZionNetworkConfig.P2P_CONFIG
+        self.max_peers = p2p_config['max_peers']
+        self.ping_interval = p2p_config['ping_interval']
+        self.peer_timeout = p2p_config['peer_timeout']
 
-        # Seed nodes for initial peer discovery
-        self.seed_nodes = [
-            'seed.zion.network:8333',
-            'seed2.zion.network:8333',
-            # Add more seed nodes as needed
-        ]
+        # Seed nodes from centralized configuration - REAL DATA ONLY
+        self.seed_nodes = get_seed_nodes("production")
 
         # Message handlers
         self.message_handlers = {
@@ -176,11 +175,11 @@ class ZIONP2PNetwork:
         # Connect to seed nodes
         await self.connect_to_seeds()
 
-        # Peer security / scoring state
+        # Peer security / scoring state from centralized config
         self.peer_scores: Dict[str, int] = {}
         self.banned_peers: Dict[str, float] = {}  # peer_key -> ban_until (epoch)
         self.peer_ping_times: Dict[str, list] = {}
-        # Configuration thresholds
+        # Configuration thresholds from seednodes.py
         self.score_penalties = {
             'invalid_block': 25,
             'bad_timestamp': 15,
@@ -188,9 +187,9 @@ class ZIONP2PNetwork:
             'spam_ping': 5,
             'unknown_message': 5
         }
-        self.ban_threshold = 100
-        self.ban_duration = 900  # seconds (15m)
-        self.score_decay_interval = 60  # seconds
+        self.ban_threshold = ZionNetworkConfig.P2P_CONFIG['ban_threshold']
+        self.ban_duration = ZionNetworkConfig.P2P_CONFIG['ban_duration']
+        self.score_decay_interval = ZionNetworkConfig.P2P_CONFIG['score_decay_interval']
         self.score_decay_amount = 5
 
         # Start maintenance & watchdog tasks
@@ -209,14 +208,29 @@ class ZIONP2PNetwork:
         logger.info("ZION P2P network stopped")
 
     async def connect_to_seeds(self):
-        """Connect to seed nodes for initial peer discovery"""
+        """Connect to seed nodes for initial peer discovery with timeout"""
+        logger.info("Connecting to seed nodes...")
+        
         for seed in self.seed_nodes:
             try:
                 host, port_str = seed.split(':')
                 port = int(port_str)
-                await self.connect_to_peer(host, port)
+                logger.debug(f"Attempting to connect to seed: {host}:{port}")
+                
+                # Add timeout from centralized config to prevent hanging on unreachable seeds
+                timeout = ZionNetworkConfig.P2P_CONFIG['connection_timeout']
+                await asyncio.wait_for(
+                    self.connect_to_peer(host, port), 
+                    timeout=timeout
+                )
+                logger.info(f"Successfully connected to seed: {seed}")
+                
+            except asyncio.TimeoutError:
+                logger.warning(f"Timeout connecting to seed {seed}")
             except Exception as e:
-                logger.debug(f"Failed to connect to seed {seed}: {e}")
+                logger.warning(f"Failed to connect to seed {seed}: {e}")
+        
+        logger.info(f"Seed connection phase complete. Connected peers: {len(self.peers)}")
 
     async def connect_to_peer(self, host: str, port: int):
         """Connect to a specific peer"""

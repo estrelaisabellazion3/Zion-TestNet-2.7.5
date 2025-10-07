@@ -17,8 +17,9 @@ from datetime import datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 
-# Import the real ZION blockchain
+# Import the real ZION blockchain and centralized config
 from new_zion_blockchain import NewZionBlockchain
+from seednodes import ZionNetworkConfig, get_pool_port
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -435,8 +436,11 @@ class ZIONPoolAPIServer:
             print("📊 Pool API server stopped")
 
 class ZionUniversalPool:
-    def __init__(self, port=3333):
-        self.port = port
+    def __init__(self, port=None):
+        # Use centralized pool configuration
+        pool_config = ZionNetworkConfig.POOL_CONFIG
+        
+        self.port = port or pool_config['stratum_port']
         self.miners: Dict[tuple, dict] = {}
         self.miner_stats: Dict[str, MinerStats] = {}
         self.current_jobs = {
@@ -448,29 +452,27 @@ class ZionUniversalPool:
         self.share_counter = 0
         self.block_counter = 0
 
-        # Reward system
+        # Reward system from centralized config
         self.pool_blocks: List[PoolBlock] = []
-        self.pool_wallet_address = "ZION_POOL_WALLET_ADDRESS"  # TODO: Configure real wallet
-        self.pool_fee_percent = 0.01  # 1%
-        self.payout_threshold = 1.0  # Minimum payout in ZION
-        self.current_block_height = 5612  # Starting from current height
+        self.pool_wallet_address = 'ZION_SACRED_B0FA7E2A234D8C2F08545F02295C98'  # Sacred Mining Operator from premine
+        self.pool_fee_percent = pool_config['fee_percent']
+        self.payout_threshold = pool_config['payout_threshold']
+        
+        # Real blockchain integration
+        self.blockchain = NewZionBlockchain()
+        
+        # Get current height from blockchain instead of hardcoded value
+        self.current_block_height = len(self.blockchain.blocks) - 1  # Current blockchain height
 
         # Share validation
         self.submitted_shares = set()  # For duplicate detection
         self.share_window_size = 100  # Rolling window for difficulty adjustment
 
-        self.difficulty = {
-            'randomx': 10000,        # RandomX (CPU)
-            'yescrypt': 8000,        # Yescrypt (CPU)
-            'autolykos_v2': 75       # Autolykos v2 (GPU)
-        }
+        # Algorithm difficulty from centralized config
+        self.difficulty = pool_config['difficulty'].copy()
         
-        # Eco-friendly algorithm rewards - FINAL SET
-        self.eco_rewards = {
-            'randomx': 1.0,      # Standard reward (100W avg)
-            'yescrypt': 1.15,    # +15% eco bonus (80W avg) 
-            'autolykos_v2': 1.2  # +20% eco bonus (150W avg) - BEST GPU ALGO
-        }
+        # Eco-friendly algorithm rewards from centralized config
+        self.eco_rewards = pool_config['eco_rewards'].copy()
 
         # Jobs and submissions tracking
         self.jobs = {}
@@ -519,12 +521,9 @@ class ZionUniversalPool:
         # Database integration
         self.db = ZIONPoolDatabase()
 
-        # Real blockchain integration
-        self.blockchain = NewZionBlockchain()
-        self.pool_wallet_address = 'ZION_SACRED_B0FA7E2A234D8C2F08545F02295C98'  # Sacred Mining Operator from premine
-
-        # API server (will be started in start_server)
-        self.api_server = ZIONPoolAPIServer(self, port=self.port + 1)
+        # API server from centralized config
+        api_port = pool_config['api_port']
+        self.api_server = ZIONPoolAPIServer(self, port=api_port)
 
     def validate_zion_address(self, address):
         """Validate ZION address format"""
