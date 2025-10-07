@@ -1,0 +1,70 @@
+#!/bin/bash
+# ZION AI Afterburner post-installation script
+
+set -e
+
+echo "🔥 Configuring ZION AI Afterburner..."
+
+# Create system user and group
+if ! getent group zion-ai >/dev/null 2>&1; then
+    echo "👤 Creating zion-ai group..."
+    groupadd --system zion-ai
+fi
+
+if ! getent passwd zion-ai >/dev/null 2>&1; then
+    echo "👤 Creating zion-ai user..."
+    useradd --system --gid zion-ai --home-dir /var/lib/zion-ai \
+            --shell /bin/false --comment "ZION AI Afterburner Service" zion-ai
+fi
+
+# Create necessary directories
+echo "📁 Creating directories..."
+mkdir -p /var/lib/zion-ai/logs
+mkdir -p /var/lib/zion-ai/data
+mkdir -p /etc/zion-ai
+
+# Set proper permissions
+echo "🔒 Setting permissions..."
+chown -R zion-ai:zion-ai /var/lib/zion-ai
+chown -R zion-ai:zion-ai /etc/zion-ai
+chmod 755 /var/lib/zion-ai
+chmod 755 /var/lib/zion-ai/logs
+chmod 755 /var/lib/zion-ai/data
+chmod 644 /etc/zion-ai/afterburner.json
+
+# Install Python dependencies
+echo "🐍 Installing Python dependencies..."
+pip3 install psutil numpy >/dev/null 2>&1 || {
+    echo "⚠️ Warning: Failed to install some Python dependencies"
+    echo "Please run manually: pip3 install psutil numpy"
+}
+
+# Enable and reload systemd
+echo "⚙️ Configuring systemd service..."
+systemctl daemon-reload
+
+# Check if we can access systemctl (not in chroot)
+if [ -d /run/systemd/system ]; then
+    systemctl enable zion-ai-afterburner.service
+    echo "✅ Service enabled for auto-start"
+else
+    echo "ℹ️ Skipping service enable (chroot detected)"
+fi
+
+echo ""
+echo "🎉 ZION AI Afterburner installation completed!"
+echo ""
+echo "📋 Next steps:"
+echo "1. Configure settings: sudo nano /etc/zion-ai/afterburner.json"
+echo "2. Start service: sudo systemctl start zion-ai-afterburner"
+echo "3. Check status: sudo systemctl status zion-ai-afterburner"
+echo "4. View logs: sudo journalctl -u zion-ai-afterburner -f"
+echo ""
+echo "🔧 Hardware requirements:"
+echo "   - Recommended: NVIDIA GPU for optimal performance"
+echo "   - Minimum: 2GB RAM, 4 CPU cores"
+echo "   - Python 3.8+ with numpy and psutil"
+echo ""
+echo "📖 Documentation: https://github.com/estrelaisabellazion3/Zion-TestNet-2.7.5"
+
+exit 0

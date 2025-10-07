@@ -1,0 +1,29 @@
+{
+  "max_cpu_usage": 85.0,
+  "max_gpu_usage": 90.0,
+  "thermal_limit": 80.0,
+  "auto_optimize": true,
+  "auto_generate_tasks": true,
+  "ai_workloads": {
+    "image_processing": true,
+    "neural_networks": true,
+    "data_analysis": true,
+    "matrix_computation": true
+  },
+  "performance_mode": "hybrid_mode",
+  "monitoring": {
+    "update_interval": 10,
+    "history_retention": 60,
+    "thermal_protection": true
+  },
+  "hardware": {
+    "prefer_gpu": true,
+    "cpu_threads_limit": 0,
+    "memory_limit_mb": 0
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "/var/lib/zion-ai/logs/afterburner.log",
+    "console": true
+  }
+}

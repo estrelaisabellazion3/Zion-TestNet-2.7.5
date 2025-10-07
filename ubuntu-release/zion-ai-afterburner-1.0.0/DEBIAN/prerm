@@ -1,0 +1,27 @@
+#!/bin/bash
+# ZION AI Afterburner pre-removal script
+
+set -e
+
+echo "🔥 Stopping ZION AI Afterburner service..."
+
+# Stop service if running
+if [ -d /run/systemd/system ]; then
+    if systemctl is-active --quiet zion-ai-afterburner; then
+        echo "⏹️ Stopping zion-ai-afterburner service..."
+        systemctl stop zion-ai-afterburner
+    fi
+    
+    if systemctl is-enabled --quiet zion-ai-afterburner; then
+        echo "🔓 Disabling zion-ai-afterburner service..."
+        systemctl disable zion-ai-afterburner
+    fi
+    
+    systemctl daemon-reload
+else
+    echo "ℹ️ Skipping systemctl operations (chroot detected)"
+fi
+
+echo "✅ Service stopped and disabled"
+
+exit 0

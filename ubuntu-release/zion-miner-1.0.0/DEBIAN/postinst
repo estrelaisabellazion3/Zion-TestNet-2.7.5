@@ -1,0 +1,52 @@
+#!/bin/bash
+set -e
+
+# ZION Miner Post-Installation Script
+
+echo "🚀 ZION Miner 1.0.0 - Post Installation Setup"
+
+# Create zion-miner user if doesn't exist
+if ! id "zion-miner" &>/dev/null; then
+    echo "👤 Creating zion-miner system user..."
+    useradd --system --home-dir /var/lib/zion-miner --create-home \
+            --shell /bin/false --comment "ZION Miner Service" zion-miner
+fi
+
+# Create necessary directories
+echo "📁 Creating directories..."
+mkdir -p /var/lib/zion-miner/logs
+mkdir -p /var/lib/zion-miner/data
+mkdir -p /etc/zion-miner
+
+# Set proper permissions
+echo "🔒 Setting permissions..."
+chown -R zion-miner:zion-miner /var/lib/zion-miner
+chmod 755 /var/lib/zion-miner
+chmod 755 /var/lib/zion-miner/logs
+chmod 755 /var/lib/zion-miner/data
+chmod 644 /etc/zion-miner/config.json
+chmod +x /usr/bin/zion-miner
+
+# Reload systemd daemon
+echo "⚙️ Configuring systemd service..."
+systemctl daemon-reload
+
+# Enable but don't start the service (user choice)
+systemctl enable zion-miner.service
+
+echo ""
+echo "✅ ZION Miner installation completed successfully!"
+echo ""
+echo "📋 Next steps:"
+echo "   1. Edit configuration: sudo nano /etc/zion-miner/config.json"
+echo "   2. Start mining: sudo systemctl start zion-miner"
+echo "   3. Check status: sudo systemctl status zion-miner"
+echo "   4. View logs: sudo journalctl -u zion-miner -f"
+echo ""
+echo "🔧 Configuration file: /etc/zion-miner/config.json"
+echo "📊 Service status: systemctl status zion-miner"
+echo "📁 Data directory: /var/lib/zion-miner/"
+echo ""
+echo "🌐 For support visit: https://github.com/estrelaisabellazion3/Zion-TestNet-2.7.5"
+
+exit 0

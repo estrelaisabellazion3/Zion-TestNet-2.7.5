@@ -1,0 +1,16 @@
+Package: zion-ai-afterburner
+Version: 1.0.0
+Section: utils
+Priority: optional
+Architecture: amd64
+Depends: python3 (>= 3.8), python3-pip, systemd, python3-psutil, python3-numpy
+Maintainer: ZION Development Team <dev@zion-testnet.org>
+Description: ZION AI Afterburner - Real GPU & AI Processing Engine
+ High-performance AI workload manager for ZION TestNet 2.7.5.
+ Features:
+ - Real GPU monitoring and thermal management
+ - AI processing workloads (neural networks, image processing, data analysis)
+ - System performance optimization and load balancing
+ - Production-ready with systemd service integration
+ - Hardware acceleration support for NVIDIA GPUs
+ - Comprehensive performance metrics and monitoring

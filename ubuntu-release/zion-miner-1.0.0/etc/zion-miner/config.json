@@ -1,0 +1,23 @@
+{
+  "pool_host": "localhost",
+  "pool_port": 3335,
+  "wallet_address": "Zion1MainNetWallet123456789",
+  "worker_name": "ZION-Ubuntu-Production",
+  "log_level": "INFO",
+  "log_file": "/var/lib/zion-miner/logs/miner.log",
+  "connection_retries": 5,
+  "retry_delay": 10,
+  "report_interval": 30,
+  "hash_rounds": 1,
+  "_comments": {
+    "pool_host": "ZION mining pool hostname or IP address",
+    "pool_port": "ZION mining pool port (default: 3335)",
+    "wallet_address": "Your ZION wallet address for mining rewards",
+    "worker_name": "Unique identifier for this mining worker",
+    "log_level": "Logging level: DEBUG, INFO, WARNING, ERROR",
+    "connection_retries": "Number of connection attempts before giving up",
+    "retry_delay": "Seconds to wait between connection retries",
+    "report_interval": "Seconds between mining status reports",
+    "hash_rounds": "Additional hash rounds for better distribution"
+  }
+}

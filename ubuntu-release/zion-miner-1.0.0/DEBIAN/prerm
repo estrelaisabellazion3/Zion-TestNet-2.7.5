@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+# ZION Miner Pre-Removal Script
+
+echo "🛑 ZION Miner - Stopping services before removal..."
+
+# Stop and disable service if running
+if systemctl is-active --quiet zion-miner.service; then
+    echo "⏹️ Stopping zion-miner service..."
+    systemctl stop zion-miner.service
+fi
+
+if systemctl is-enabled --quiet zion-miner.service; then
+    echo "❌ Disabling zion-miner service..."
+    systemctl disable zion-miner.service
+fi
+
+echo "✅ ZION Miner services stopped"
+
+exit 0
