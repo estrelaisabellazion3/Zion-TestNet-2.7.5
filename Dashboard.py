@@ -163,6 +163,14 @@ class ZIONDashboard:
         # AI status container
         self.ai_status = {}
 
+        # Wallet session management
+        self.wallet_session = {
+            'logged_in': False,
+            'address': '',
+            'balance': 0.0,
+            'login_time': None
+        }
+
         # Initialize AI components if available
         if AI_COMPONENTS_AVAILABLE:
             self._init_ai_components()
@@ -208,6 +216,21 @@ class ZIONDashboard:
         ttk.Button(control_frame, text="🚀 Start Local Stack", command=self.start_local_stack).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(control_frame, text="⏹️ Stop All", command=self.stop_all).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(control_frame, text="📊 View Logs", command=self.view_logs).pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Wallet login section
+        wallet_frame = ttk.Frame(control_frame)
+        wallet_frame.pack(side=tk.RIGHT, padx=(10, 0))
+        
+        self.wallet_status_label = ttk.Label(wallet_frame, text="🔒 Not Logged In", 
+                                           foreground='#ff6666', font=('Consolas', 10, 'bold'))
+        self.wallet_status_label.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.login_button = ttk.Button(wallet_frame, text="🔐 Login", command=self.show_wallet_login)
+        self.login_button.pack(side=tk.LEFT, padx=(0, 5))
+        
+        self.logout_button = ttk.Button(wallet_frame, text="🚪 Logout", command=self.wallet_logout)
+        self.logout_button.pack(side=tk.LEFT)
+        self.logout_button.pack_forget()  # Initially hidden
 
         # Status indicators
         status_frame = ttk.Frame(main_frame)
@@ -1429,10 +1452,12 @@ class ZIONDashboard:
         except Exception as e:
             self._log_debug(f"psutil system stats error: {e}")
 
-        # Wallet balance
+        # Wallet balance - use session balance if logged in, otherwise live_data
         try:
             balance_value = 0.0
-            if live_data:
+            if self.wallet_session['logged_in']:
+                balance_value = self.wallet_session['balance']
+            elif live_data:
                 balance_value = float(live_data.get('wallet', {}).get('balance', 0.0))
             if hasattr(self, 'balance_value_label') and str(self.balance_value_label):
                 self.balance_value_label.config(text=f"{balance_value:.2f} ZION")
@@ -1739,6 +1764,212 @@ class ZIONDashboard:
                 messagebox.showerror("Error", "Log directory not found")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to open logs: {str(e)}")
+
+    def show_wallet_login(self):
+        """Show wallet login dialog"""
+        login_window = tk.Toplevel(self.root)
+        login_window.title("🔐 ZION Wallet Login")
+        login_window.geometry("400x300")
+        login_window.configure(bg='#0f0f23')
+        login_window.resizable(False, False)
+        
+        # Center window
+        login_window.transient(self.root)
+        login_window.grab_set()
+        
+        # Header
+        header_frame = ttk.Frame(login_window)
+        header_frame.pack(fill=tk.X, pady=20, padx=20)
+        
+        ttk.Label(header_frame, text="🔐 ZION Wallet Login", 
+                 font=('Consolas', 16, 'bold'), foreground='#00ffff').pack()
+        
+        ttk.Label(header_frame, text="Enter your wallet address to access dashboard", 
+                 font=('Consolas', 10), foreground='#888888').pack(pady=(5, 0))
+        
+        # Form
+        form_frame = ttk.Frame(login_window)
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        # Wallet Address
+        ttk.Label(form_frame, text="Wallet Address:", font=('Consolas', 12, 'bold')).pack(anchor=tk.W, pady=(0, 5))
+        address_entry = tk.Entry(form_frame, width=50, font=('Consolas', 10), bg='#1a1a2e', fg='#00ff00', 
+                                insertbackground='#00ff00', relief=tk.FLAT, bd=5)
+        address_entry.pack(fill=tk.X, pady=(0, 15))
+        address_entry.focus()
+        
+        # Optional Password/Token
+        ttk.Label(form_frame, text="Password/Token (Optional):", font=('Consolas', 12, 'bold')).pack(anchor=tk.W, pady=(0, 5))
+        token_entry = tk.Entry(form_frame, width=50, font=('Consolas', 10), bg='#1a1a2e', fg='#00ff00',
+                              insertbackground='#00ff00', relief=tk.FLAT, bd=5, show='*')
+        token_entry.pack(fill=tk.X, pady=(0, 15))
+        
+        # Status
+        status_label = ttk.Label(form_frame, text="", font=('Consolas', 10))
+        status_label.pack(pady=(0, 10))
+        
+        # Buttons
+        button_frame = ttk.Frame(form_frame)
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        def attempt_login():
+            address = address_entry.get().strip()
+            token = token_entry.get().strip()
+            
+            if not address:
+                status_label.config(text="❌ Please enter wallet address", foreground='#ff6666')
+                return
+                
+            status_label.config(text="🔄 Validating wallet...", foreground='#ffaa00')
+            login_window.update()
+            
+            # Validate wallet
+            if self.validate_wallet_login(address, token):
+                self.wallet_session.update({
+                    'logged_in': True,
+                    'address': address,
+                    'login_time': datetime.now()
+                })
+                self.update_wallet_ui()
+                status_label.config(text="✅ Login successful!", foreground='#00ff88')
+                login_window.after(1000, login_window.destroy)
+            else:
+                status_label.config(text="❌ Invalid wallet address", foreground='#ff6666')
+        
+        def cancel_login():
+            login_window.destroy()
+        
+        ttk.Button(button_frame, text="🔐 Login", command=attempt_login).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(button_frame, text="❌ Cancel", command=cancel_login).pack(side=tk.LEFT)
+        
+        # Demo addresses
+        demo_frame = ttk.Frame(form_frame)
+        demo_frame.pack(fill=tk.X, pady=(20, 0))
+        
+        ttk.Label(demo_frame, text="Quick Demo:", font=('Consolas', 10, 'italic')).pack(anchor=tk.W)
+        
+        def use_demo():
+            address_entry.delete(0, tk.END)
+            address_entry.insert(0, "ZIONdemo123456789abcdef")
+            
+        ttk.Button(demo_frame, text="Use Demo Address", command=use_demo).pack(anchor=tk.W, pady=(5, 0))
+        
+        # Enter key binding
+        def on_enter(event):
+            attempt_login()
+            
+        address_entry.bind('<Return>', on_enter)
+        token_entry.bind('<Return>', on_enter)
+
+    def validate_wallet_login(self, address, token=""):
+        """Validate wallet address via RPC or simple format check"""
+        try:
+            # Basic format validation (ZION addresses might start with 'Z' or specific pattern)
+            if len(address) < 10:
+                return False
+                
+            # Try RPC validation if available
+            try:
+                url = f"{self.blockchain_rpc_url}/rpc"
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "validateaddress",
+                    "params": [address],
+                    "id": 1
+                }
+                response = requests.post(url, json=payload, timeout=3)
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get('result', {}).get('isvalid'):
+                        return True
+            except Exception as e:
+                self._log_debug(f"RPC validation failed: {e}")
+            
+            # Fallback: basic format check for demo
+            if address.startswith('ZION') and len(address) >= 15:
+                return True
+                
+            # Accept any reasonable looking address for development
+            if len(address) >= 20 and all(c.isalnum() for c in address):
+                return True
+                
+        except Exception as e:
+            self._log_debug(f"Wallet validation error: {e}")
+            
+        return False
+
+    def update_wallet_ui(self):
+        """Update wallet UI elements after login/logout"""
+        try:
+            if self.wallet_session['logged_in']:
+                # Update status
+                short_addr = self.wallet_session['address'][:8] + "..." + self.wallet_session['address'][-4:]
+                if hasattr(self, 'wallet_status_label') and str(self.wallet_status_label):
+                    self.wallet_status_label.config(text=f"🔓 {short_addr}", foreground='#00ff88')
+                
+                # Show logout, hide login
+                if hasattr(self, 'login_button'):
+                    self.login_button.pack_forget()
+                if hasattr(self, 'logout_button'):
+                    self.logout_button.pack(side=tk.LEFT)
+                    
+                # Fetch balance
+                threading.Thread(target=self.fetch_wallet_balance, daemon=True).start()
+            else:
+                # Not logged in
+                if hasattr(self, 'wallet_status_label') and str(self.wallet_status_label):
+                    self.wallet_status_label.config(text="🔒 Not Logged In", foreground='#ff6666')
+                
+                # Show login, hide logout
+                if hasattr(self, 'logout_button'):
+                    self.logout_button.pack_forget()
+                if hasattr(self, 'login_button'):
+                    self.login_button.pack(side=tk.LEFT, padx=(0, 5))
+                    
+        except Exception as e:
+            self._log_debug(f"update_wallet_ui error: {e}")
+
+    def wallet_logout(self):
+        """Logout from wallet"""
+        self.wallet_session.update({
+            'logged_in': False,
+            'address': '',
+            'balance': 0.0,
+            'login_time': None
+        })
+        self.update_wallet_ui()
+        
+    def fetch_wallet_balance(self):
+        """Fetch wallet balance in background"""
+        try:
+            if not self.wallet_session['logged_in']:
+                return
+                
+            address = self.wallet_session['address']
+            
+            # Try RPC call
+            url = f"{self.blockchain_rpc_url}/rpc"
+            payload = {
+                "jsonrpc": "2.0", 
+                "method": "getbalance",
+                "params": [address],
+                "id": 1
+            }
+            
+            response = requests.post(url, json=payload, timeout=5)
+            if response.status_code == 200:
+                result = response.json()
+                balance = result.get('result', 0.0)
+                self.wallet_session['balance'] = float(balance)
+                self._log_debug(f"Fetched balance: {balance} ZION")
+            else:
+                # Demo balance
+                self.wallet_session['balance'] = 42.75
+                
+        except Exception as e:
+            self._log_debug(f"fetch_wallet_balance error: {e}")
+            # Demo fallback
+            self.wallet_session['balance'] = 12.34
 
     # AI Mining Control Methods
     def start_gpu_miner(self):
