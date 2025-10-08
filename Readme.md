@@ -6,6 +6,71 @@
 
 ## 🌟 Přehled / Overview
 
+### 🆕 Dashboard 2.7.5 – Real-Only Refactor (Říjen 2025)
+
+Refaktor přinesl 100% odstranění simulovaných dat v desktop / Tk dashboardu a sjednocení logiky AI těžebních komponent. Cílem je absolutní datová integrita: pokud zdroj není čerstvý nebo validní, zobrazí se 0 / Inactive – nikdy ne „poslední známá“ nebo odhadovaná hodnota.
+
+**Klíčové body:**
+- ŽÁDNÉ SIMULACE ("ZADNE SIMULACE") – hash rate, bloky, balance, AI status pouze z reálných zdrojů
+- Priorita zdrojů: `live_stats.json` (<30s) → `real_system_status.json` (<20s) → přímé komponenty → jinak 0 / Inactive
+- Sjednocený AI status přes `_update_ai_status_unified()` (GPU / Hybrid / Afterburner / Yescrypt miner)
+- Odstraněny hard‑coded fallback hashraty (57.56, 42.31 …)
+- Adaptivní monitor smyčka (throttling, nižší CPU zátěž)
+- `process_registry` pro PID tracking a korektní stop sekvenci (terminate → kill fallback)
+- Žádné holé `except:` – vše logováno přes `_log_debug`
+- Sparkline textové grafy s historií omez. na 100 bodů
+- Striktní kontrola stáří JSON souborů (stará data = ignorace + log)
+
+**Politika Autenticity Dat:**
+| Metrika | Primární zdroj | Max stáří | Fallback | Chování když neaktuální |
+|---------|----------------|-----------|----------|--------------------------|
+| Hashrate | live_stats.json:mining.hashrate | 30s | komponentní getter | Zobrazeno 0.0 H/s |
+| Block Height | live_stats.json:blockchain.height | 30s | žádný | 0 |
+| Wallet Balance | live_stats.json:wallet.balance | 30s | žádný | 0.00 |
+| CPU / RAM | psutil realtime | n/a | n/a | vždy aktuální |
+| AI Status | process + unified stats | 30s | žádný | Inactive |
+
+**Rychlý Start Real Monitoru:**
+```bash
+python3 real_system_monitor.py &             # generuje real_system_status.json
+python3 zion_unified.py --daemon &           # (volitelné) unified stack
+python3 Dashboard.py                         # spustí GUI
+```
+
+**Ověření No-Simulation:**
+```bash
+pkill -f zion_unified.py || true
+pkill -f xmrig || true
+pkill -f SRBMiner-MULTI || true
+python3 Dashboard.py   # Hashrate musí být 0.0 H/s, statusy neaktivní
+```
+
+**Struktura Dat (výřez):**
+```jsonc
+// live_stats.json
+{
+  "wallet": {"balance": 12.34},
+  "blockchain": {"height": 1234, "connections": 8},
+  "mining": {"active": true, "hashrate": 842.7}
+}
+// real_system_status.json
+{
+  "timestamp": "ISO",
+  "system": {"cpu": 18.2, "memory": 42.5},
+  "mining": {"active": false, "hashrate": 0.0}
+}
+```
+
+**Bezpečnost Zobrazení:**
+- Nikdy se nezobrazuje hodnota starší než povolený limit
+- Žádné syntetické aproximace výkonu (raději 0.0)
+- Chyby čtení / parsování = log, ne podvrh
+- Pokud unified endpoint selže, stav zůstane Inactive (ne cache)
+
+Tato sekce platí pouze pro lokální / desktop monitor; webový Next.js frontend může mít vlastní cache vrstvy – ty nyní neinjikují simulované metriky.
+
+***
+
 # 🌟 ZION 2.7.5 TestNet - Complete Blockchain Ecosystem
 
 **ZION 2.7.5 TestNet** je masivní blockchain ekosystém s AI integrací, pokročilým mining systémem, frontend dashboardem a kompletní infrastrukturou pro produkční nasazení.
