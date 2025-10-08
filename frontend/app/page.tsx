@@ -22,28 +22,41 @@ export default function Page() {
   const backoffRef = useRef<number>(10000); // start with 10s
   const mountedRef = useRef<boolean>(false);
 
-  // ZION 2.7.1 TestNet Data Fetcher - FastAPI Backend
+  // ZION 2.7.5 TestNet - REAL PRODUCTION DATA ONLY
   const fetchZionCoreStats = async () => {
     try {
-      const response = await fetch('http://localhost:8001/api/zion-2-7-stats', {
-        method: 'GET',
-        cache: 'no-store',
-        signal: AbortSignal.timeout(5000)
-      });
+      // Import production client
+      const { ZionProductionClient } = await import('./utils/productionClient');
+      const client = new ZionProductionClient();
       
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      // Check if production server is online first  
+      const isOnline = await client.isProductionOnline();
+      if (!isOnline) {
+        throw new Error('Production server 91.98.122.165 is offline');
       }
       
-      const data = await response.json();
+      // Fetch ONLY real production data
+      const realStats = await client.fetchRealStats();
+      
       if (!mountedRef.current) return;
-      setZionStats(data);
+      
+      setZionStats(realStats);
       setLastUpdate(new Date());
       // reset backoff on success
       backoffRef.current = 10000;
       
     } catch (err) {
-      console.error('ZION Core fetch error:', err);
+      console.error('Production server connection failed:', err);
+      // Show connection error to user - NO FAKE DATA
+      if (mountedRef.current) {
+        setZionStats({
+          timestamp: new Date().toISOString(),
+          source: 'production-91.98.122.165',
+          simulation: false,
+          version: '2.7.5-production',
+          error: 'Production server offline - No simulation data available'
+        });
+      }
       // increase backoff up to 60s
       backoffRef.current = Math.min(backoffRef.current * 1.5, 60000);
     }

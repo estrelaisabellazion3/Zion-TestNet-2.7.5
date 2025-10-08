@@ -15,8 +15,8 @@ SERVER_PORT="22"
 SERVER_PATH="/root/zion_production"
 
 # Lokální konfigurace
-LOCAL_ROOT="/media/maitreya/ZION1"
-VENV_PATH="/home/maitreya/zion_local_deployment/venv"
+LOCAL_ROOT="/Users/yeshuae/Desktop/ZION/Zion-TestNet-2.7.5-github"
+VENV_PATH=""
 
 # Production porty (odlišné od lokálních pro avoiding konfliktů)
 PROD_BLOCKCHAIN_RPC_PORT=8332
@@ -26,10 +26,9 @@ PROD_API_PORT=3336
 
 echo "🔍 Pre-deployment checks..."
 
-# Check local stack works
-if ! pgrep -f "zion_universal_pool" > /dev/null; then
-    echo "❌ Local ZION stack not running. Start it first with:"
-    echo "   bash start_zion_local.sh"
+# Check if we have essential files
+if [ ! -f "new_zion_blockchain.py" ] || [ ! -f "zion_unified.py" ]; then
+    echo "❌ Essential ZION files not found"
     exit 1
 fi
 
