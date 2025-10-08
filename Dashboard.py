@@ -151,127 +151,167 @@ class ZIONDashboard:
 
         # Optimized performance history for charts
         self.performance_history = {
-            'cpu': [],
-            'memory': [],
-            'gpu_temp': [],
-            'hashrate': [],
-            'ai_tasks': [],
-            'network_rx': [],
-            'network_tx': [],
-            'timestamps': []
+            'cpu': [], 'memory': [], 'gpu_temp': [], 'hashrate': [], 'ai_tasks': [], 'network_rx': [], 'network_tx': [], 'timestamps': []
         }
-        self.max_history_points = 100  # More data points for better charts
-        
-        # UI State management
-        self.monitoring = True
-        self.last_update = 0
-        self.update_counter = 0
+        self.max_history_points = 100
 
         # Status variables
         self.blockchain_status = {"status": "unknown", "blocks": 0, "connections": 0}
         self.pool_status = {"miners": 0, "hashrate": 0, "blocks_found": 0}
         self.system_status = {"cpu": 0, "memory": 0, "disk": 0}
 
-        # AI Mining components
-        self.ai_components = {}
+        # AI status container
         self.ai_status = {}
+
+        # Initialize AI components if available
         if AI_COMPONENTS_AVAILABLE:
             self._init_ai_components()
 
+        # UI setup & services
         self.setup_ui()
         self.start_monitoring()
-        
-        # Initialize integrated API server
         self.setup_integrated_api()
-        
-        # Auto-start all services on dashboard startup
         self.root.after(1000, self.auto_start_all_services)
+        self._log_debug("Dashboard initialized")
+        # Internal registry for started processes {name: Popen}
+        self.process_registry = {}
 
-    def _init_ai_components(self):
-        """Initialize AI mining components"""
+    def _log_debug(self, msg: str):
         try:
-            self.ai_components = {
-                'gpu_miner': ZionGPUMiner(),
-                'ai_afterburner': ZionAIAfterburner(),
-                'hybrid_miner': ZionHybridMiner(),
-                'yesscript_miner': ZionAIYesscriptMiner()
-            }
+            print(f"[DEBUG] {msg}")
+        except Exception:
+            pass
 
-            self.ai_status = {
-                'gpu_miner': {'active': False, 'hashrate': 0.0, 'algorithm': 'kawpow'},
-                'ai_afterburner': {'active': False, 'tasks': 0, 'efficiency': 0.0},
-                'hybrid_miner': {'active': False, 'cpu_hashrate': 0.0, 'gpu_hashrate': 0.0, 'total_hashrate': 0.0},
-                'yesscript_miner': {'active': False, 'hashrate': 0.0, 'threads': 0, 'algorithm': 'yescrypt'}
-            }
-
-            print("🤖 AI mining components initialized")
+    def _load_recent_json(self, path: str, max_age_seconds: int = 30):
+        """Load JSON file only if it is not older than given age. Returns dict or None.
+        No simulation, strictly real data. Logs debug on failure/age issues."""
+        try:
+            if not os.path.exists(path):
+                return None
+            stat = os.stat(path)
+            age = time.time() - stat.st_mtime
+            if age > max_age_seconds:
+                self._log_debug(f"File {path} stale (age {age:.1f}s > {max_age_seconds}s)")
+                return None
+            with open(path, 'r') as f:
+                return json.load(f)
         except Exception as e:
-            print(f"Failed to initialize AI components: {e}")
-            self.ai_components = {}
-            self.ai_status = {}
+            self._log_debug(f"Failed to load {path}: {e}")
+            return None
 
-    def setup_ui(self):
-        """Setup the advanced dashboard UI"""
-        # Configure modern styles
-        self.setup_styles()
+    def _update_ai_status_unified(self):
+        """Internal consolidated AI status updater (called by public update_ai_status)."""
+        timestamp = datetime.now().strftime('%H:%M:%S')
+        # Prefer live stats
+        unified_stats = None
+        if os.path.exists('live_stats.json'):
+            try:
+                with open('live_stats.json','r') as f:
+                    unified_stats = json.load(f)
+            except Exception as e:
+                self._log_debug(f"live_stats read fail: {e}")
+        if unified_stats is None:
+            unified_stats = self.get_unified_system_stats()
 
-        # Main container with gradient effect
-        main_frame = ttk.Frame(self.root, style="Main.TFrame")
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=15)
+        gpu_active = self.check_process_running('SRBMiner-MULTI')
+        ai_afterburner_active = self.check_process_running('zion_ai_afterburner')
+        hybrid_cpu_active = self.check_process_running('xmrig')
 
-        # Modern header with status indicators
-        self.setup_header(main_frame)
-        
-        # Quick stats bar
-        self.setup_quick_stats(main_frame)
+        yesscript_active = False
+        yesscript_hashrate = 0.0
+        yesscript_threads = 0
+        if unified_stats:
+            ai_section = unified_stats.get('ai_miner') or unified_stats.get('ai') or {}
+            yesscript_active = bool(ai_section.get('active', False))
+            yesscript_hashrate = float(ai_section.get('current_hashrate', 0.0) or ai_section.get('hashrate', 0.0))
+            yesscript_threads = int(ai_section.get('threads_active', 0))
+        if not yesscript_active and 'yesscript_miner' in self.ai_components:
+            try:
+                ys_obj = self.ai_components['yesscript_miner']
+                if hasattr(ys_obj, 'get_mining_stats'):
+                    ys_stats = ys_obj.get_mining_stats()
+                    yesscript_active = ys_stats.get('active', False)
+                    yesscript_hashrate = ys_stats.get('hashrate', 0.0)
+                    yesscript_threads = ys_stats.get('threads', 0)
+            except Exception as e:
+                self._log_debug(f"yesscript local fallback fail: {e}")
 
-        # Main content area with tabs
-        self.setup_main_content(main_frame)
-        
-        # Status bar at bottom
-        self.setup_status_bar(main_frame)
+        # Internal flags
+        self.ai_stats.gpu_miner_active = gpu_active
+        self.ai_stats.ai_afterburner_active = ai_afterburner_active
+        self.ai_stats.hybrid_miner_active = hybrid_cpu_active
+        self.ai_stats.yesscript_miner_active = yesscript_active
 
-    def setup_styles(self):
-        """Configure modern TTK styles"""
-        style = ttk.Style()
-        
-        # Main frame style
-        style.configure("Main.TFrame", background=self.colors['bg_primary'])
-        
-        # Header styles
-        style.configure("Header.TLabel", 
-                       background=self.colors['bg_primary'], 
-                       foreground=self.colors['text_primary'], 
-                       font=('Segoe UI', 18, 'bold'))
-        
-        style.configure("Subtitle.TLabel",
-                       background=self.colors['bg_primary'],
-                       foreground=self.colors['text_accent'],
-                       font=('Segoe UI', 11))
-        
-        # Card styles
-        style.configure("Card.TFrame",
-                       background=self.colors['bg_secondary'],
-                       relief='flat',
-                       borderwidth=1)
-        
-        # Button styles
-        style.configure("Accent.TButton",
-                       background=self.colors['accent'],
-                       foreground='#000000',
-                       font=('Segoe UI', 10, 'bold'),
-                       focuscolor='none')
-        
-        # Data display styles
-        style.configure("Data.TLabel",
-                       background=self.colors['bg_secondary'],
-                       foreground=self.colors['text_primary'],
-                       font=('Consolas', 10))
-        
-        style.configure("Value.TLabel", 
-                       background=self.colors['bg_secondary'],
-                       foreground=self.colors['success'],
-                       font=('Consolas', 11, 'bold'))
+        # Ensure dict structure
+        for k in ['gpu_miner','ai_afterburner','hybrid_miner','yesscript_miner']:
+            self.ai_status.setdefault(k, {})
+
+        self.ai_status['gpu_miner'].update({
+            'active': gpu_active,
+            'hashrate': self.get_gpu_miner_hashrate() if gpu_active else 0.0,
+            'algorithm': 'kawpow'
+        })
+        self.ai_status['ai_afterburner'].update({
+            'active': ai_afterburner_active,
+            'tasks': getattr(self.ai_stats,'active_tasks',0),
+            'efficiency': getattr(self.ai_stats,'efficiency',0.0)
+        })
+        cpu_hr = self.get_hybrid_miner_hashrate() if hybrid_cpu_active else 0.0
+        gpu_hr = self.ai_status['gpu_miner']['hashrate'] if gpu_active else 0.0
+        self.ai_status['hybrid_miner'].update({
+            'active': hybrid_cpu_active,
+            'cpu_hashrate': cpu_hr,
+            'gpu_hashrate': gpu_hr,
+            'total_hashrate': cpu_hr + gpu_hr
+        })
+        self.ai_status['yesscript_miner'].update({
+            'active': yesscript_active,
+            'hashrate': yesscript_hashrate,
+            'threads': yesscript_threads,
+            'algorithm': 'yescrypt'
+        })
+
+        # Update UI indicators
+        def _set(ind_name, active, hash_label=None, value=0.0, unit='H/s'):
+            w = getattr(self, ind_name, None)
+            if w is not None:
+                w.config(text=('🟢 Active' if active else '🔴 Inactive'),
+                         foreground=(self.colors['success'] if active else self.colors['error']))
+            if hash_label:
+                hv = getattr(self, hash_label, None)
+                if hv is not None:
+                    hv.config(text=f"{value:.1f} {unit}")
+
+        _set('gpu_miner_status_indicator', gpu_active, 'gpu_miner_hashrate_display', self.ai_status['gpu_miner']['hashrate']/1_000_000 if self.ai_status['gpu_miner']['hashrate']>0 else 0.0, 'MH/s')
+        _set('ai_afterburner_status_indicator', ai_afterburner_active)
+        _set('hybrid_miner_status_indicator', hybrid_cpu_active, 'hybrid_miner_hashrate_display', self.ai_status['hybrid_miner']['total_hashrate'])
+        _set('yesscript_miner_status_indicator', yesscript_active, 'yesscript_miner_hashrate_display', yesscript_hashrate)
+
+        # AI metrics panel
+        self.update_ai_metrics_display()
+
+        if hasattr(self, 'ai_text'):
+            try:
+                self.ai_text.delete(1.0, tk.END)
+                self.ai_text.insert(tk.END, f"AI SYSTEM STATUS - {timestamp}\n\n", 'header')
+                for key, info in self.ai_status.items():
+                    icon = '🟢' if info.get('active') else '🔴'
+                    line = f"{icon} {key}: "
+                    if 'hashrate' in info:
+                        line += f"{info.get('hashrate',0):.1f} H/s"
+                    if key == 'yesscript_miner' and info.get('threads'):
+                        line += f" | Threads: {info.get('threads')}"
+                    self.ai_text.insert(tk.END, line + '\n')
+            except Exception as e:
+                self._log_debug(f"ai_text render fail: {e}")
+
+    def update_ai_status(self):
+        """Public method invoked by monitor loop / buttons."""
+        try:
+            self._update_ai_status_unified()
+            self._log_debug('AI status refreshed')
+        except Exception as e:
+            self._log_debug(f"update_ai_status outer fail: {e}")
 
     def setup_header(self, parent):
         """Setup modern header with status indicators"""
@@ -633,14 +673,6 @@ class ZIONDashboard:
             self.terminal_output.delete(1.0, tk.END)
             self.write_terminal_output("💻 Terminal cleared\n\n")
 
-    def copy_terminal(self):
-        """Copy terminal content to clipboard"""
-        if hasattr(self, 'terminal_output'):
-            content = self.terminal_output.get(1.0, tk.END)
-            self.root.clipboard_clear()
-            self.root.clipboard_append(content)
-            self.write_terminal_output("📋 Terminal content copied to clipboard\n")
-
     def save_terminal_log(self):
         """Save terminal log to file"""
         if hasattr(self, 'terminal_output'):
@@ -652,35 +684,7 @@ class ZIONDashboard:
                     f.write(content)
                 self.write_terminal_output(f"💾 Terminal log saved: {filename}\n")
             except Exception as e:
-                self.write_terminal_output(f"❌ Error saving log: {str(e)}\n")
-
-    def execute_command(self, event=None):
-        """Execute command from terminal input"""
-        if not hasattr(self, 'command_entry'):
-            return
-            
-        command = self.command_entry.get().strip()
-        if not command:
-            return
-        
-        # Add to history
-        if command not in self.command_history:
-            self.command_history.append(command)
-        self.history_index = len(self.command_history)
-        
-        # Clear input
-        self.command_entry.delete(0, tk.END)
-        
-        # Display command
-        self.write_terminal_output(f"zion@dashboard:~$ {command}\n")
-        
-        # Execute command
-        self.run_terminal_command(command)
-
-    def run_quick_command(self, command):
-        """Run a quick command"""
-        self.write_terminal_output(f"💨 Quick Command: {command}\n")
-        self.run_terminal_command(command)
+                self.write_terminal_output(f"❌ Error saving log: {e}\n")
 
     def run_terminal_command(self, command):
         """Execute terminal command and show output"""
@@ -692,7 +696,6 @@ class ZIONDashboard:
                     path = '/media/maitreya/ZION1'
                 elif not path.startswith('/'):
                     path = os.path.join(self.current_directory, path)
-                
                 if os.path.exists(path) and os.path.isdir(path):
                     self.current_directory = os.path.abspath(path)
                     self.write_terminal_output(f"📁 Changed directory to: {self.current_directory}\n")
@@ -706,10 +709,9 @@ class ZIONDashboard:
                 self.clear_terminal()
                 return
             elif command == 'exit':
-                self.write_terminal_output("👋 Use the close button to exit dashboard\n")
+                self.write_terminal_output("Session closed.\n")
                 return
             
-            # Execute system command
             result = subprocess.run(
                 command,
                 shell=True,
@@ -718,21 +720,16 @@ class ZIONDashboard:
                 text=True,
                 timeout=30
             )
-            
-            # Display output
             if result.stdout:
                 self.write_terminal_output(result.stdout)
             if result.stderr:
-                self.write_terminal_output(f"⚠️ {result.stderr}")
-            
+                self.write_terminal_output(result.stderr)
             if result.returncode != 0:
-                self.write_terminal_output(f"❌ Exit code: {result.returncode}\n")
-            
+                self.write_terminal_output(f"⚠️ Exit code: {result.returncode}\n")
         except subprocess.TimeoutExpired:
-            self.write_terminal_output("⏰ Command timeout (30s limit)\n")
+            self.write_terminal_output("⏰ Command timeout (30s)\n")
         except Exception as e:
-            self.write_terminal_output(f"❌ Command error: {str(e)}\n")
-        
+            self.write_terminal_output(f"❌ Command error: {e}\n")
         self.write_terminal_output("\n")
 
     def command_history_up(self, event):
@@ -825,59 +822,46 @@ class ZIONDashboard:
     def update_charts(self):
         """Update performance charts display"""
         self.chart_text.delete(1.0, tk.END)
+        # Trim histories to max_history_points
+        for k, arr in self.performance_history.items():
+            if k == 'timestamps':
+                continue
+            if len(arr) > self.max_history_points:
+                overflow = len(arr) - self.max_history_points
+                del arr[:overflow]
+        # Align timestamps
+        if len(self.performance_history['timestamps']) > self.max_history_points:
+            overflow = len(self.performance_history['timestamps']) - self.max_history_points
+            del self.performance_history['timestamps'][:overflow]
 
-        chart_data = "📊 ZION PERFORMANCE CHARTS\n"
-        chart_data += "=" * 50 + "\n\n"
+        def spark(values, width=40, value_format="{:.1f}"):
+            if not values:
+                return "(no data)"
+            lo, hi = min(values), max(values)
+            if hi == lo:
+                return "■" * min(len(values), width)
+            # Downsample if necessary
+            step = max(1, int(len(values)/width))
+            sampled = values[::step][:width]
+            blocks = "▁▂▃▄▅▆▇█"
+            span = hi - lo
+            line = ''.join(blocks[int((v - lo)/span * (len(blocks)-1))] for v in sampled)
+            return f"{line}  (min {value_format.format(lo)}, avg {value_format.format(sum(values)/len(values))}, max {value_format.format(hi)})"
 
-        # CPU Chart
-        chart_data += "🔥 CPU Usage History:\n"
-        if self.performance_history['cpu']:
-            for i, (cpu, timestamp) in enumerate(zip(self.performance_history['cpu'][-10:],
-                                                   self.performance_history['timestamps'][-10:])):
-                bar = "█" * int(cpu / 10)
-                chart_data += f"{timestamp}: {bar} {cpu:.1f}%\n"
-        chart_data += "\n"
+        sections = [
+            ("🔥 CPU %", self.performance_history['cpu'], "{:.1f}%"),
+            ("💾 Memory %", self.performance_history['memory'], "{:.1f}%"),
+            ("🎮 GPU Temp °C", self.performance_history['gpu_temp'], "{:.1f}"),
+            ("⛏️ Hashrate H/s", self.performance_history['hashrate'], "{:.2f}"),
+            ("🤖 AI Tasks", self.performance_history['ai_tasks'], "{:.0f}")
+        ]
 
-        # Memory Chart
-        chart_data += "💾 Memory Usage History:\n"
-        if self.performance_history['memory']:
-            for i, (mem, timestamp) in enumerate(zip(self.performance_history['memory'][-10:],
-                                                   self.performance_history['timestamps'][-10:])):
-                bar = "█" * int(mem / 10)
-                chart_data += f"{timestamp}: {bar} {mem:.1f}%\n"
-        chart_data += "\n"
+        header = "📊 ZION PERFORMANCE CHARTS\n" + "="*50 + "\nLast Update: " + datetime.now().strftime('%H:%M:%S') + "\nPoints: " + str(len(self.performance_history['cpu'])) + "\n\n"
+        out = [header]
+        for title, data_series, fmt in sections:
+            out.append(title + "\n" + spark(data_series) + "\n\n")
 
-        # GPU Temperature Chart
-        chart_data += "🎮 GPU Temperature History:\n"
-        if self.performance_history['gpu_temp']:
-            for i, (temp, timestamp) in enumerate(zip(self.performance_history['gpu_temp'][-10:],
-                                                    self.performance_history['timestamps'][-10:])):
-                bar = "█" * int(temp / 10)
-                chart_data += f"{timestamp}: {bar} {temp:.1f}°C\n"
-        chart_data += "\n"
-
-        # Hashrate Chart
-        chart_data += "⛏️ Mining Hashrate History:\n"
-        if self.performance_history['hashrate']:
-            for i, (hr, timestamp) in enumerate(zip(self.performance_history['hashrate'][-10:],
-                                                  self.performance_history['timestamps'][-10:])):
-                bar = "█" * int(hr / 10)
-                chart_data += f"{timestamp}: {bar} {hr:.2f} H/s\n"
-        chart_data += "\n"
-
-        # AI Tasks Chart
-        chart_data += "🤖 AI Tasks History:\n"
-        if self.performance_history['ai_tasks']:
-            for i, (tasks, timestamp) in enumerate(zip(self.performance_history['ai_tasks'][-10:],
-                                                     self.performance_history['timestamps'][-10:])):
-                bar = "█" * int(tasks)
-                chart_data += f"{timestamp}: {bar} {tasks} tasks\n"
-        chart_data += "\n"
-
-        chart_data += f"📈 Total Data Points: {len(self.performance_history['cpu'])}\n"
-        chart_data += f"🔄 Last Update: {datetime.now().strftime('%H:%M:%S')}"
-
-        self.chart_text.insert(tk.END, chart_data)
+        self.chart_text.insert(tk.END, ''.join(out))
 
     def clear_performance_history(self):
         """Clear performance history"""
@@ -889,35 +873,42 @@ class ZIONDashboard:
     def start_unified_system(self):
         """Start ZION Unified System"""
         try:
-            # Start unified system with AI mining enabled
+            if 'unified' in self.process_registry and self.process_registry['unified'].poll() is None:
+                messagebox.showinfo("Info", "Unified system already running")
+                return
             cmd = ['python3', 'zion_unified.py', '--daemon']
-            self.unified_process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            
-            # Update status
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            self.process_registry['unified'] = proc
+            self._log_debug(f"Started unified system PID {proc.pid}")
+            # UI update
             self.unified_status_text.delete(1.0, tk.END)
             self.unified_status_text.insert(tk.END, "🚀 Starting ZION Unified System...\n")
-            self.unified_status_text.insert(tk.END, f"Process ID: {self.unified_process.pid}\n")
+            self.unified_status_text.insert(tk.END, f"Process ID: {proc.pid}\n")
             self.unified_status_text.insert(tk.END, "Components: Blockchain + Mining Pool + AI Yesscript Miner\n")
-            
             messagebox.showinfo("Success", "ZION Unified System started")
         except Exception as e:
+            self._log_debug(f"Unified start error: {e}")
             messagebox.showerror("Error", f"Failed to start unified system: {str(e)}")
 
     def stop_unified_system(self):
         """Stop ZION Unified System"""
         try:
-            # Kill unified system process
+            proc = self.process_registry.get('unified')
+            if proc and proc.poll() is None:
+                proc.terminate()
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self._log_debug("Unified system did not terminate gracefully, killing")
+                    proc.kill()
+            # Fallback kill to ensure no stray processes
             subprocess.run(['pkill', '-f', 'zion_unified.py'], check=False)
-            
-            if hasattr(self, 'unified_process'):
-                self.unified_process.terminate()
-            
-            # Update status
+            self.process_registry.pop('unified', None)
             self.unified_status_text.delete(1.0, tk.END)
             self.unified_status_text.insert(tk.END, "⏹️ ZION Unified System stopped\n")
-            
             messagebox.showinfo("Success", "ZION Unified System stopped")
         except Exception as e:
+            self._log_debug(f"Unified stop error: {e}")
             messagebox.showerror("Error", f"Failed to stop unified system: {str(e)}")
 
     def check_unified_status(self):
@@ -1087,120 +1078,7 @@ class ZIONDashboard:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to export data: {str(e)}")
 
-    def update_ai_status(self):
-        """Update AI components status with unified system integration"""
-        try:
-            # First, try to get status from unified system
-            unified_stats = self.get_unified_system_stats()
-            
-            # Check AI miner status from both unified system and process monitoring
-            gpu_active = self.check_process_running("SRBMiner-MULTI")
-            ai_active = self.check_process_running("zion_ai_afterburner")
-            hybrid_active = self.check_process_running("xmrig")
-            
-            # Enhanced Yesscript miner status from unified system
-            yesscript_active = False
-            yesscript_hashrate = 0.0
-            yesscript_threads = 0
-            
-            if unified_stats and 'ai_miner' in unified_stats:
-                ai_miner_data = unified_stats['ai_miner']
-                yesscript_active = ai_miner_data.get('active', False)
-                yesscript_hashrate = ai_miner_data.get('current_hashrate', 0.0)
-                yesscript_threads = ai_miner_data.get('threads_active', 0)
-            elif self.ai_components.get('yesscript_miner', None) is not None:
-                yesscript_miner = self.ai_components['yesscript_miner']
-                yesscript_active = getattr(yesscript_miner, 'is_mining', False)
-                if yesscript_active:
-                    # Get stats from AI miner directly
-                    try:
-                        stats = yesscript_miner.get_mining_stats()
-                        yesscript_hashrate = stats.get('hashrate', 0.0)
-                        yesscript_threads = stats.get('threads', 0)
-                    except Exception as e:
-                        print(f"Could not get yesscript stats: {e}")
-
-            # Update internal stats
-            self.ai_stats.gpu_miner_active = gpu_active
-            self.ai_stats.ai_afterburner_active = ai_active
-            self.ai_stats.hybrid_miner_active = hybrid_active
-            self.ai_stats.yesscript_miner_active = yesscript_active
-
-            # Update UI indicators
-            if hasattr(self, 'gpu_miner_status_indicator'):
-                self.gpu_miner_status_indicator.config(
-                    text="🟢 Active" if gpu_active else "🔴 Inactive",
-                    foreground='#00ff00' if gpu_active else '#ff0000'
-                )
-
-            if hasattr(self, 'ai_afterburner_status_indicator'):
-                self.ai_afterburner_status_indicator.config(
-                    text="🟢 Active" if ai_active else "🔴 Inactive",
-                    foreground='#00ff00' if ai_active else '#ff0000'
-                )
-
-            if hasattr(self, 'hybrid_miner_status_indicator'):
-                self.hybrid_miner_status_indicator.config(
-                    text="🟢 Active" if hybrid_active else "🔴 Inactive",
-                    foreground='#00ff00' if hybrid_active else '#ff0000'
-                )
-
-            if hasattr(self, 'yesscript_miner_status_indicator'):
-                status_text = "🟢 Active" if yesscript_active else "🔴 Inactive"
-                if yesscript_active and yesscript_threads > 0:
-                    status_text += f" ({yesscript_threads} threads)"
-                self.yesscript_miner_status_indicator.config(
-                    text=status_text,
-                    foreground='#00ff00' if yesscript_active else '#ff0000'
-                )
-                
-            # Update Yesscript hashrate with unified system data
-            if hasattr(self, 'yesscript_miner_hashrate_display'):
-                if yesscript_active and yesscript_hashrate > 0:
-                    self.yesscript_miner_hashrate_display.config(text=f"{yesscript_hashrate:.2f} H/s")
-                else:
-                    self.yesscript_miner_hashrate_display.config(text="0.0 H/s")
-
-            # Update hashrate displays with real data
-            if gpu_active and hasattr(self, 'gpu_miner_hashrate_display'):
-                # Get real hashrate from SRBMiner API or process
-                try:
-                    gpu_hashrate = self.get_gpu_miner_hashrate()
-                    self.gpu_miner_hashrate_display.config(text=f"{gpu_hashrate:.2f} H/s")
-                except:
-                    self.gpu_miner_hashrate_display.config(text="57.56 H/s")  # Default
-
-            if hybrid_active and hasattr(self, 'hybrid_miner_hashrate_display'):
-                try:
-                    hybrid_hashrate = self.get_hybrid_miner_hashrate()
-                    self.hybrid_miner_hashrate_display.config(text=f"{hybrid_hashrate:.2f} H/s")
-                except:
-                    self.hybrid_miner_hashrate_display.config(text="42.31 H/s")  # Default
-
-            if yesscript_active and hasattr(self, 'yesscript_miner_hashrate_display'):
-                try:
-                    yesscript_stats = self.ai_components['yesscript_miner'].get_mining_stats()
-                    hashrate = yesscript_stats.get('hashrate', 0.0)
-                    self.yesscript_miner_hashrate_display.config(text=f"{hashrate:.2f} H/s")
-                except:
-                    self.yesscript_miner_hashrate_display.config(text="500.0 H/s")  # Default
-
-            # Update AI allocation based on performance
-            if self.system_stats.cpu_usage > 85:
-                self.ai_stats.allocation_mining = max(50, self.ai_stats.allocation_mining - 5)
-                self.ai_stats.allocation_ai = 100 - self.ai_stats.allocation_mining
-            elif self.gpu_stats.temperature > 85:
-                self.ai_stats.allocation_mining = max(60, self.ai_stats.allocation_mining - 3)
-                self.ai_stats.allocation_ai = 100 - self.ai_stats.allocation_mining
-
-            # Update metrics display
-            self.update_ai_metrics_display()
-
-            print("AI status updated successfully")
-        except Exception as e:
-            print(f"Failed to update AI status: {str(e)}")
-            if hasattr(self, 'gpu_miner_status_indicator'):
-                self.gpu_miner_status_indicator.config(text="❌ Error", foreground='#ff0000')
+    # (Unified update_ai_status implementation defined earlier is authoritative)
 
     def start_all_ai(self):
         """Start all AI components"""
@@ -1263,37 +1141,35 @@ class ZIONDashboard:
             result = subprocess.run(['pgrep', '-f', process_name],
                                   capture_output=True, text=True)
             return result.returncode == 0
-        except:
+        except Exception as e:
+            self._log_debug(f"check_process_running error ({process_name}): {e}")
             return False
 
     def get_unified_system_stats(self):
-        """Get stats from ZION unified system"""
+        """Get unified system stats (real only) from freshest available source.
+        Priority:
+          1. Fresh live_stats.json (<=30s)
+          2. Fresh real_system_status.json (<=20s)
+          3. Optional RPC endpoint /unified/stats (timeout 1s)
+        Returns dict or None."""
+        # 1. live_stats.json
+        live_stats = self._load_recent_json('live_stats.json', 30)
+        if live_stats:
+            return live_stats
+
+        # 2. real_system_status.json
+        real_status = self._load_recent_json('real_system_status.json', 20)
+        if real_status:
+            return real_status
+
+        # 3. RPC endpoint fallback (non-blocking quick try)
         try:
-            # Try to connect to unified system process directly
-            result = subprocess.run(['python3', 'zion_unified.py', '--help'], 
-                                  capture_output=True, text=True, cwd='.')
-            if result.returncode == 0:
-                # Unified system is available, try to get stats via file or API
-                try:
-                    # Check if there's a live stats file
-                    if os.path.exists('live_stats.json'):
-                        with open('live_stats.json', 'r') as f:
-                            return json.load(f)
-                except Exception:
-                    pass
-                
-                # Try RPC call to unified system
-                try:
-                    response = requests.get(f"{self.blockchain_rpc_url}/unified/stats", timeout=2)
-                    if response.status_code == 200:
-                        return response.json()
-                except Exception:
-                    pass
-            
-            return None
+            response = requests.get(f"{self.blockchain_rpc_url}/unified/stats", timeout=1)
+            if response.status_code == 200:
+                return response.json()
         except Exception as e:
-            # Unified system not available, return None
-            return None
+            self._log_debug(f"Unified RPC stats fail: {e}")
+        return None
 
     def run(self):
         """Main application loop"""
@@ -1308,14 +1184,21 @@ class ZIONDashboard:
 
     def monitor_loop(self):
         """Main monitoring loop"""
+        base_interval = 3.0
+        last_run = 0.0
         while self.monitoring:
+            start = time.time()
             try:
-                # Use thread-safe updates
-                self.root.after(0, self.safe_update_all)
+                # Throttle if previous update still recent (< 1s)
+                if start - last_run >= 1.0:
+                    self.root.after(0, self.safe_update_all)
+                    last_run = start
             except Exception as e:
                 print(f"Monitor loop error: {e}")
-
-            time.sleep(3)  # Update every 3 seconds
+            # Adaptive sleep: keep near base interval but allow finer granularity
+            elapsed = time.time() - start
+            sleep_for = max(0.2, base_interval - elapsed)
+            time.sleep(sleep_for)
 
     def safe_update_all(self):
         """Thread-safe update of all components with REAL data only"""
@@ -1344,8 +1227,8 @@ class ZIONDashboard:
                     stat = os.stat('live_stats.json')
                     age = time.time() - stat.st_mtime
                     live_stats_active = age < 30  # Less than 30 seconds old
-            except:
-                pass
+            except Exception as e:
+                self._log_debug(f"live_stats age check error: {e}")
             
             if has_active_components or live_stats_active:
                 status_icon = "🟢"
@@ -1361,65 +1244,92 @@ class ZIONDashboard:
             self.update_status_bar(f"⚠️ Update Error: {str(e)[:30]} - {datetime.now().strftime('%H:%M:%S')}")
             
     def update_quick_stats(self):
-        """Update quick stats cards with REAL data only"""
+        """Update quick stats strictly from real sources (no simulations).
+        Sources priority:
+          1. Fresh live_stats.json (<=30s)
+          2. Fresh real_system_status.json (<=15s for system/mining)
+          3. Direct process / psutil inspection / AI component stats
+        All exceptions are captured and logged via _log_debug without hiding partial updates."""
+        # Load data files (do not treat absence as error)
+        live_data = self._load_recent_json('live_stats.json', 30)
+        real_status = self._load_recent_json('real_system_status.json', 15)
+
+        # System stats (CPU/memory) - always fresh via psutil; override only if file more specific
         try:
-            # Get real system stats
             if PSUTIL_AVAILABLE:
-                cpu_percent = psutil.cpu_percent()
+                cpu_percent = psutil.cpu_percent(interval=0.1)
                 memory = psutil.virtual_memory()
                 self.system_stats.cpu_usage = cpu_percent
                 self.system_stats.memory_usage = memory.percent
                 self.system_stats.memory_total = memory.total / (1024**3)
                 self.system_stats.memory_used = memory.used / (1024**3)
-            
-            # Read REAL balance from live_stats.json
-            balance = "0.00 ZION"
-            try:
-                if os.path.exists('live_stats.json'):
-                    with open('live_stats.json', 'r') as f:
-                        stats = json.load(f)
-                    balance = f"{stats.get('wallet', {}).get('balance', 0.0):.2f} ZION"
-            except:
-                pass
-            self.balance_value_label.config(text=balance)
-            
-            # Calculate REAL hashrate from actual AI components
-            total_hashrate = 0.0
-            if hasattr(self, 'ai_components') and self.ai_components:
-                for component, instance in self.ai_components.items():
-                    try:
-                        if hasattr(instance, 'get_mining_stats'):
-                            stats = instance.get_mining_stats()
-                            hashrate = stats.get('hashrate', 0.0)
-                            total_hashrate += hashrate
-                        elif hasattr(instance, 'hashrate'):
-                            total_hashrate += getattr(instance, 'hashrate', 0.0)
-                    except:
-                        pass
-            
-            # Show REAL hashrate or 0
-            if total_hashrate > 0:
-                self.hashrate_value_label.config(text=f"{total_hashrate:.1f} H/s", foreground='#00ff88')
+        except Exception as e:
+            self._log_debug(f"psutil system stats error: {e}")
+
+        # Wallet balance
+        try:
+            balance_value = 0.0
+            if live_data:
+                balance_value = float(live_data.get('wallet', {}).get('balance', 0.0))
+            self.balance_value_label.config(text=f"{balance_value:.2f} ZION")
+        except Exception as e:
+            self._log_debug(f"Balance update error: {e}")
+            self.balance_value_label.config(text="0.00 ZION")
+
+        # Hashrate determination
+        total_hashrate = 0.0
+        try:
+            if live_data and live_data.get('mining', {}).get('active'):
+                total_hashrate = float(live_data.get('mining', {}).get('hashrate', 0.0))
+            elif real_status and real_status.get('mining', {}).get('active'):
+                total_hashrate = float(real_status.get('mining', {}).get('hashrate', 0.0))
             else:
-                self.hashrate_value_label.config(text="0.0 H/s", foreground='#666666')
-            
-            # Calculate REAL efficiency from system performance
-            if PSUTIL_AVAILABLE and total_hashrate > 0:
-                efficiency = max(0, 100 - (self.system_stats.cpu_usage))
+                # Fallback to AI component internal stats
+                if hasattr(self, 'ai_components') and self.ai_components:
+                    for instance in self.ai_components.values():
+                        try:
+                            if hasattr(instance, 'get_mining_stats'):
+                                stats = instance.get_mining_stats() or {}
+                                total_hashrate += float(stats.get('hashrate', 0.0))
+                            elif hasattr(instance, 'hashrate'):
+                                total_hashrate += float(getattr(instance, 'hashrate', 0.0))
+                        except Exception as inner_e:
+                            self._log_debug(f"AI component hashrate error: {inner_e}")
+        except Exception as e:
+            self._log_debug(f"Hashrate computation error: {e}")
+
+        # Update hashrate label
+        if total_hashrate > 0:
+            self.hashrate_value_label.config(text=f"{total_hashrate:.1f} H/s", foreground='#00ff88')
+        else:
+            self.hashrate_value_label.config(text="0.0 H/s", foreground='#666666')
+
+        # Efficiency (simple derived metric)
+        try:
+            if total_hashrate > 0 and hasattr(self.system_stats, 'cpu_usage'):
+                efficiency = max(0.0, 100.0 - float(self.system_stats.cpu_usage))
                 color = '#00ff88' if efficiency > 70 else '#ffaa00' if efficiency > 40 else '#ff6666'
                 self.efficiency_value_label.config(text=f"{efficiency:.0f}%", foreground=color)
             else:
                 self.efficiency_value_label.config(text="0%", foreground='#666666')
-            
-            # Get REAL blocks from live stats
-            blocks = self.get_current_blocks()
+        except Exception as e:
+            self._log_debug(f"Efficiency calc error: {e}")
+            self.efficiency_value_label.config(text="0%", foreground='#666666')
+
+        # Blocks (height)
+        try:
+            blocks = 0
+            if live_data:
+                blocks = int(live_data.get('blockchain', {}).get('height', 0))
+            elif real_status:
+                blocks = int(real_status.get('blockchain', {}).get('height', 0))
             if blocks > 0:
                 self.blocks_value_label.config(text=str(blocks), foreground='#00ff88')
             else:
                 self.blocks_value_label.config(text="0", foreground='#666666')
-            
         except Exception as e:
-            print(f"Quick stats update error: {e}")
+            self._log_debug(f"Blocks update error: {e}")
+            self.blocks_value_label.config(text="0", foreground='#666666')
             
     def get_current_blocks(self):
         """Get REAL current block count from live stats only"""
@@ -1429,8 +1339,8 @@ class ZIONDashboard:
                     stats = json.load(f)
                 blockchain = stats.get('blockchain', {})
                 return blockchain.get('height', 0)
-        except:
-            pass
+        except Exception as e:
+            self._log_debug(f"get_current_blocks error: {e}")
         
         return 0
 
@@ -1450,7 +1360,8 @@ class ZIONDashboard:
                 self.blockchain_text.insert(tk.END, json.dumps(data, indent=2))
             else:
                 self.blockchain_status_label.config(text="Status: 🔴 Offline", foreground='#ff0000')
-        except:
+        except Exception as e:
+            self._log_debug(f"update_blockchain_status error: {e}")
             self.blockchain_status_label.config(text="Status: 🔴 Offline", foreground='#ff0000')
 
     def update_pool_status(self):
@@ -1469,7 +1380,8 @@ class ZIONDashboard:
                 self.pool_text.insert(tk.END, json.dumps(data, indent=2))
             else:
                 self.pool_status_label.config(text="Status: 🔴 Offline", foreground='#ff0000')
-        except:
+        except Exception as e:
+            self._log_debug(f"update_pool_status error: {e}")
             self.pool_status_label.config(text="Status: 🔴 Offline", foreground='#ff0000')
 
     def update_system_status(self):
@@ -1511,7 +1423,7 @@ class ZIONDashboard:
             self._update_performance_history()
 
         except Exception as e:
-            print(f"System status update error: {e}")
+            self._log_debug(f"System status update error: {e}")
 
     def _update_gpu_stats(self):
         """Update GPU statistics cross-platform"""
@@ -1563,7 +1475,7 @@ class ZIONDashboard:
             self.gpu_stats.fan_speed = 0
 
         except Exception as e:
-            print(f"GPU stats update error: {e}")
+            self._log_debug(f"GPU stats update error: {e}")
 
     def _update_performance_history(self):
         """Update performance history for charts"""
@@ -1601,8 +1513,8 @@ class ZIONDashboard:
             self.logs_text.delete(1.0, tk.END)
             self.logs_text.insert(tk.END, log_content)
             self.logs_text.see(tk.END)
-        except:
-            pass
+        except Exception as e:
+            self._log_debug(f"update_logs error: {e}")
 
     def update_status_bar(self, message):
         """Update status bar message"""
@@ -2101,12 +2013,9 @@ class ZIONDashboard:
                 data = response.json()
                 if 'hashrate' in data:
                     return float(data['hashrate'].get('total', [0])[0])
-        except:
-            pass
-
-        # Fallback: check if process is running and return estimated hashrate
-        if self.check_process_running("SRBMiner-MULTI"):
-            return 57.56  # Estimated based on GPU performance
+        except Exception as e:
+            self._log_debug(f"GPU miner hashrate API error: {e}")
+        # Real-only: no synthetic estimation
         return 0.0
 
     def get_hybrid_miner_hashrate(self):
@@ -2120,12 +2029,9 @@ class ZIONDashboard:
                     total_hashrate = data['hashrate'].get('total', [0])
                     if isinstance(total_hashrate, list) and len(total_hashrate) > 0:
                         return float(total_hashrate[0])
-        except:
-            pass
-
-        # Fallback: check if process is running and return estimated hashrate
-        if self.check_process_running("xmrig"):
-            return 42.31  # Estimated CPU+GPU hashrate
+        except Exception as e:
+            self._log_debug(f"Hybrid miner hashrate API error: {e}")
+        # Real-only: no synthetic estimation
         return 0.0
 
     def update_ai_metrics_display(self):
@@ -2341,8 +2247,8 @@ def main():
         try:
             app.cleanup_processes()
             print("🛑 ZION services stopped")
-        except:
-            pass
+        except Exception as e:
+            app._log_debug(f"on_closing cleanup error: {e}")
         root.destroy()
     
     root.protocol("WM_DELETE_WINDOW", on_closing)

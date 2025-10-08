@@ -129,3 +129,13 @@ chaindata/
 *.tar.gz
 *.zip
 *.7z
+
+# Runtime & status artefacts (not for version control)
+live_stats.json
+real_system_status.json
+*.runtime.json
+*.status.json
+
+# System / OS special dirs on some mounts
+$RECYCLE.BIN/
+System Volume Information/
