@@ -1,0 +1,25 @@
+{
+  "system": {
+    "running": true,
+    "blockchain_type": "main_2.7.5",
+    "components": {
+      "blockchain": true,
+      "mining_pool": true,
+      "ai_yesscript_miner": true,
+      "p2p_enabled": false,
+      "rpc_enabled": true
+    }
+  },
+  "ai_miner": {
+    "active": true,
+    "current_hashrate": 2927.4726750000004,
+    "threads_active": 5,
+    "algorithm": "yescrypt",
+    "memory_usage": 17.4,
+    "power_efficiency": 0.0
+  },
+  "blockchain": {
+    "height": 1,
+    "total_supply": 14342857143.0
+  }
+}

@@ -22,16 +22,27 @@ from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Any
 
 # Add ZION 2.7 paths
-ZION_ROOT = "/media/maitreya/ZION1/2.7"
+ZION_ROOT = "/media/maitreya/ZION1"
 sys.path.insert(0, ZION_ROOT)
 sys.path.insert(0, f"{ZION_ROOT}/ai")
 
-# Import ZION 2.7 components
+# Import ZION components
 try:
     from ai_gpu_bridge import ZionAIGPUBridge
     from gpu_afterburner import ZionGPUAfterburner
 except ImportError as e:
     print(f"Warning: Could not import ZION AI components: {e}")
+
+# Import ZION unified system
+try:
+    sys.path.append('/media/maitreya/ZION1')
+    from zion_unified import ZionUnifiedSystem
+    from ai.zion_ai_yesscript_miner import ZionAIYesscriptMiner
+    UNIFIED_SYSTEM_AVAILABLE = True
+    print("✅ ZION Unified System components loaded")
+except ImportError as e:
+    UNIFIED_SYSTEM_AVAILABLE = False
+    print(f"⚠️ Unified system not available: {e}")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -554,11 +565,137 @@ def components_status():
             "available": dashboard.gpu_afterburner is not None,
             "status": "active" if dashboard.gpu_afterburner else "simulated"
         },
+        "unified_system": {
+            "available": UNIFIED_SYSTEM_AVAILABLE,
+            "status": "ready"
+        },
         "monitoring": {
             "active": dashboard.monitoring_active,
             "thread_alive": dashboard.monitoring_thread.is_alive()
         }
     })
+
+@app.route('/api/unified/stats')
+def unified_system_stats():
+    """Get ZION unified system statistics"""
+    try:
+        # Check if unified system is running
+        result = subprocess.run(['pgrep', '-f', 'zion_unified.py'], 
+                              capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            # Try to read live stats
+            try:
+                with open('/media/maitreya/ZION1/live_stats.json', 'r') as f:
+                    stats = json.load(f)
+                return jsonify(stats)
+            except Exception:
+                pass
+                
+            # Return basic status if no live stats
+            return jsonify({
+                "system": {
+                    "running": True,
+                    "components": {
+                        "blockchain": True,
+                        "mining_pool": True,
+                        "ai_yesscript_miner": True
+                    }
+                }
+            })
+        else:
+            return jsonify({
+                "system": {
+                    "running": False,
+                    "components": {
+                        "blockchain": False,
+                        "mining_pool": False,
+                        "ai_yesscript_miner": False
+                    }
+                }
+            })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/unified/start', methods=['POST'])
+def start_unified_system():
+    """Start ZION unified system"""
+    try:
+        # Start unified system
+        cmd = ['python3', 'zion_unified.py', '--daemon']
+        process = subprocess.Popen(cmd, cwd='/media/maitreya/ZION1')
+        
+        return jsonify({
+            "success": True,
+            "message": "ZION Unified System starting",
+            "pid": process.pid
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/unified/stop', methods=['POST'])  
+def stop_unified_system():
+    """Stop ZION unified system"""
+    try:
+        # Kill unified system process
+        subprocess.run(['pkill', '-f', 'zion_unified.py'], check=False)
+        
+        return jsonify({
+            "success": True,
+            "message": "ZION Unified System stopped"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ai/yesscript/stats')
+def ai_yesscript_stats():
+    """Get AI Yesscript miner statistics"""
+    try:
+        # Try to get from unified system first
+        unified_stats = unified_system_stats().get_json()
+        
+        if unified_stats and 'ai_miner' in unified_stats:
+            return jsonify(unified_stats['ai_miner'])
+        
+        # Fallback to direct AI miner instance
+        if UNIFIED_SYSTEM_AVAILABLE:
+            try:
+                from ai.zion_ai_yesscript_miner import ZionAIYesscriptMiner
+                miner = ZionAIYesscriptMiner()
+                stats = miner.get_mining_stats()
+                return jsonify(stats)
+            except Exception as e:
+                return jsonify({"error": f"AI miner not available: {str(e)}"}), 500
+        
+        return jsonify({
+            "active": False,
+            "hashrate": 0.0,
+            "threads": 0,
+            "algorithm": "yescrypt",
+            "error": "Unified system not available"
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/ai/yesscript/start', methods=['POST'])
+def start_ai_yesscript():
+    """Start AI Yesscript miner"""
+    try:
+        # Check if unified system is running
+        result = subprocess.run(['pgrep', '-f', 'zion_unified.py'], 
+                              capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            return jsonify({
+                "success": True,
+                "message": "AI Yesscript miner is part of unified system"
+            })
+        else:
+            # Start unified system which includes AI miner
+            return start_unified_system()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     try:

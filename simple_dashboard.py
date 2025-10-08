@@ -24,6 +24,8 @@ class SimpleZionDashboard:
         self.blocks_found = tk.StringVar(value="0")
         self.network_status = tk.StringVar(value="Disconnected")
         self.server_status = tk.StringVar(value="91.98.122.165:3335 - Ready")
+        self.unified_system_status = tk.StringVar(value="❌ Not Running")
+        self.ai_yesscript_status = tk.StringVar(value="❌ Inactive")
         
         self.create_ui()
         self.start_monitoring()
@@ -79,6 +81,33 @@ class SimpleZionDashboard:
         ttk.Label(blocks_frame, text="Blocks Found:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT)
         ttk.Label(blocks_frame, textvariable=self.blocks_found, foreground='green').pack(side=tk.LEFT, padx=10)
         
+        # Unified System frame
+        unified_frame = ttk.LabelFrame(main_frame, text="🌟 ZION Unified System", padding=10)
+        unified_frame.pack(fill=tk.X, pady=5)
+        
+        # Unified system status
+        unified_status_frame = ttk.Frame(unified_frame)
+        unified_status_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(unified_status_frame, text="System Status:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT)
+        ttk.Label(unified_status_frame, textvariable=self.unified_system_status).pack(side=tk.LEFT, padx=10)
+        
+        # AI Yesscript status
+        ai_status_frame = ttk.Frame(unified_frame)
+        ai_status_frame.pack(fill=tk.X, pady=2)
+        ttk.Label(ai_status_frame, text="🤖 AI Yesscript Miner:", font=('Arial', 10, 'bold')).pack(side=tk.LEFT)
+        ttk.Label(ai_status_frame, textvariable=self.ai_yesscript_status).pack(side=tk.LEFT, padx=10)
+        
+        # Unified system controls
+        unified_controls_frame = ttk.Frame(unified_frame)
+        unified_controls_frame.pack(fill=tk.X, pady=5)
+        
+        ttk.Button(unified_controls_frame, text="🚀 Start Unified", 
+                  command=self.start_unified_system).pack(side=tk.LEFT, padx=5)
+        ttk.Button(unified_controls_frame, text="⏹️ Stop Unified", 
+                  command=self.stop_unified_system).pack(side=tk.LEFT, padx=5)
+        ttk.Button(unified_controls_frame, text="📊 Check Status", 
+                  command=self.check_unified_status).pack(side=tk.LEFT, padx=5)
+        
         # Production Services frame
         services_frame = ttk.LabelFrame(main_frame, text="🐳 Production Services (91.98.122.165)", padding=10)
         services_frame.pack(fill=tk.X, pady=5)
@@ -92,6 +121,7 @@ class SimpleZionDashboard:
 ✅ Rainbow Bridge (Ports 9000-9001) - Multi-chain Bridge Service
 ✅ PostgreSQL (Port 5432) - Database for Pool Data
 ✅ Redis (Port 6379) - Cache and Session Storage
+✅ ZION Unified System - Blockchain + Pool + AI Yesscript Miner
         """
         
         services_label = tk.Label(services_frame, text=services_text, 
@@ -110,7 +140,81 @@ class SimpleZionDashboard:
         self.log("🖥️ Production Server: 91.98.122.165 - All Services Operational")
         self.log("⛏️ Mining Pool Ready on Port 3335")
         self.log("🌐 Blockchain Height: 5613+ blocks")
+        self.log("🌟 ZION Unified System Ready")
         
+    def start_unified_system(self):
+        """Start ZION Unified System"""
+        try:
+            import subprocess
+            # Start unified system with AI mining enabled
+            cmd = ['python3', 'zion_unified.py', '--daemon']
+            subprocess.Popen(cmd)
+            
+            self.unified_system_status.set("✅ Starting...")
+            self.log("🚀 Starting ZION Unified System (Blockchain + Pool + AI)")
+            
+            # Schedule status check
+            self.root.after(3000, self.check_unified_status)
+            
+        except Exception as e:
+            self.log(f"❌ Error starting unified system: {str(e)}")
+            
+    def stop_unified_system(self):
+        """Stop ZION Unified System"""
+        try:
+            import subprocess
+            # Kill unified system process
+            subprocess.run(['pkill', '-f', 'zion_unified.py'], check=False)
+            
+            self.unified_system_status.set("❌ Not Running")
+            self.ai_yesscript_status.set("❌ Inactive")
+            self.log("⏹️ ZION Unified System stopped")
+            
+        except Exception as e:
+            self.log(f"❌ Error stopping unified system: {str(e)}")
+            
+    def check_unified_status(self):
+        """Check ZION Unified System status"""
+        try:
+            import subprocess
+            import os
+            
+            # Check if unified system is running
+            result = subprocess.run(['pgrep', '-f', 'zion_unified.py'], 
+                                  capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                self.unified_system_status.set("✅ Running")
+                self.log("🌟 Unified System: Active")
+                
+                # Check for AI Yesscript status from live stats
+                try:
+                    if os.path.exists('live_stats.json'):
+                        with open('live_stats.json', 'r') as f:
+                            stats = json.load(f)
+                            
+                        if 'ai_miner' in stats:
+                            ai_data = stats['ai_miner']
+                            if ai_data.get('active', False):
+                                hashrate = ai_data.get('current_hashrate', 0.0)
+                                threads = ai_data.get('threads_active', 0)
+                                self.ai_yesscript_status.set(f"✅ Active ({hashrate:.1f} H/s, {threads} threads)")
+                                self.log(f"🤖 AI Yesscript: {hashrate:.1f} H/s with {threads} threads")
+                            else:
+                                self.ai_yesscript_status.set("⚠️ Initialized")
+                        else:
+                            self.ai_yesscript_status.set("⚠️ Initializing")
+                    else:
+                        self.ai_yesscript_status.set("⚠️ Initializing")
+                except Exception:
+                    self.ai_yesscript_status.set("⚠️ Status Unknown")
+            else:
+                self.unified_system_status.set("❌ Not Running")
+                self.ai_yesscript_status.set("❌ Inactive")
+                
+        except Exception as e:
+            self.log(f"❌ Error checking status: {str(e)}")
+
     def log(self, message):
         """Add message to log"""
         timestamp = datetime.now().strftime("%H:%M:%S")

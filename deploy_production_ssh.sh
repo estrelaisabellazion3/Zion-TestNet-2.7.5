@@ -15,7 +15,7 @@ SERVER_PORT="22"
 SERVER_PATH="/root/zion_production"
 
 # Lokální konfigurace
-LOCAL_ROOT="/Users/yeshuae/Desktop/ZION/Zion-TestNet-2.7.5-github"
+LOCAL_ROOT="/media/maitreya/ZION1"
 VENV_PATH=""
 
 # Production porty (odlišné od lokálních pro avoiding konfliktů)
@@ -27,8 +27,10 @@ PROD_API_PORT=3336
 echo "🔍 Pre-deployment checks..."
 
 # Check if we have essential files
-if [ ! -f "new_zion_blockchain.py" ] || [ ! -f "zion_unified.py" ]; then
+if [ ! -f "new_zion_blockchain.py" ] || [ ! -f "zion_unified.py" ] || [ ! -d "ai" ]; then
     echo "❌ Essential ZION files not found"
+    echo "Looking for: new_zion_blockchain.py, zion_unified.py, ai/ directory"
+    ls -la | grep -E "(new_zion_blockchain|zion_unified|^d.*ai)"
     exit 1
 fi
 
@@ -50,12 +52,22 @@ mkdir -p "$DEPLOY_DIR"
 
 # Copy essential files
 echo "📄 Copying core files..."
-cp "$LOCAL_ROOT/new_zion_blockchain.py" "$DEPLOY_DIR/"
-cp "$LOCAL_ROOT/zion_universal_pool_v2.py" "$DEPLOY_DIR/"
-cp "$LOCAL_ROOT/zion_rpc_server.py" "$DEPLOY_DIR/"
-cp "$LOCAL_ROOT/zion_p2p_network.py" "$DEPLOY_DIR/"
-cp "$LOCAL_ROOT/crypto_utils.py" "$DEPLOY_DIR/"
+cp "$LOCAL_ROOT/new_zion_blockchain.py" "$DEPLOY_DIR/" 2>/dev/null || true
+cp "$LOCAL_ROOT/zion_unified.py" "$DEPLOY_DIR/"
+cp "$LOCAL_ROOT/zion_universal_pool_v2.py" "$DEPLOY_DIR/" 2>/dev/null || true
+cp "$LOCAL_ROOT/zion_rpc_server.py" "$DEPLOY_DIR/" 2>/dev/null || true
+cp "$LOCAL_ROOT/zion_p2p_network.py" "$DEPLOY_DIR/" 2>/dev/null || true
+cp "$LOCAL_ROOT/crypto_utils.py" "$DEPLOY_DIR/" 2>/dev/null || true
 cp "$LOCAL_ROOT/requirements.txt" "$DEPLOY_DIR/"
+
+# Copy AI directory and components
+echo "🤖 Copying AI components..."
+cp -r "$LOCAL_ROOT/ai" "$DEPLOY_DIR/" 2>/dev/null || true
+
+# Copy dashboard components
+echo "📊 Copying dashboard components..."
+cp "$LOCAL_ROOT/Dashboard.py" "$DEPLOY_DIR/" 2>/dev/null || true
+cp "$LOCAL_ROOT/simple_dashboard.py" "$DEPLOY_DIR/" 2>/dev/null || true
 
 # Create production configuration
 echo "⚙️  Creating production config..."
