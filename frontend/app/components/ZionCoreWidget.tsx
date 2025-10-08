@@ -11,7 +11,7 @@ interface BlockchainStats {
 }
 
 interface Props {
-  blockchain: BlockchainStats;
+  blockchain?: BlockchainStats;
   networkStatus: string;
 }
 
@@ -27,6 +27,26 @@ export default function ZionCoreWidget({ blockchain, networkStatus }: Props) {
     if (difficulty > 1e4) return 'text-yellow-400';
     return 'text-green-400';
   };
+
+  // Handle missing blockchain data from production server
+  if (!blockchain) {
+    return (
+      <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-xl p-6">
+        <h3 className="text-xl font-semibold mb-4 flex items-center">
+          ⛓️ ZION Blockchain
+        </h3>
+        <div className="text-center py-8">
+          <div className="text-gray-400 mb-2">⚠️ Production Server Offline</div>
+          <div className="text-sm text-gray-500">
+            Waiting for real data from 91.98.122.165...
+          </div>
+          <div className="text-xs text-red-400 mt-2">
+            NO SIMULATION DATA AVAILABLE
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-purple-900/30 to-blue-900/30 border border-purple-700/50 rounded-xl p-6">
@@ -60,7 +80,7 @@ export default function ZionCoreWidget({ blockchain, networkStatus }: Props) {
             <span className="text-gray-300">Block Height</span>
             <motion.span 
               className="text-purple-400 font-mono text-lg"
-              key={blockchain.height}
+              key={blockchain?.height || blockchain?.block_height || 0}
               initial={{ scale: 1.1, color: '#a78bfa' }}
               animate={{ scale: 1, color: '#c4b5fd' }}
               transition={{ duration: 0.3 }}
@@ -69,7 +89,7 @@ export default function ZionCoreWidget({ blockchain, networkStatus }: Props) {
             </motion.span>
           </div>
           <div className="text-xs text-gray-500">
-            Latest block confirmed
+            {blockchain?.height || blockchain?.block_height ? 'Latest block confirmed' : 'Waiting for production data...'}
           </div>
         </div>
 
@@ -87,10 +107,10 @@ export default function ZionCoreWidget({ blockchain, networkStatus }: Props) {
         </div>
 
         {/* Transaction Stats */}
-        {(blockchain.txCount !== undefined || blockchain.txPoolSize !== undefined) && (
+        {(blockchain?.txCount !== undefined || blockchain?.txPoolSize !== undefined) && (
           <div className="bg-purple-900/20 rounded-lg p-3">
             <div className="grid grid-cols-2 gap-3">
-              {blockchain.txCount !== undefined && (
+              {blockchain?.txCount !== undefined && (
                 <div>
                   <div className="text-gray-300 text-sm">Transactions</div>
                   <div className="text-blue-400 font-mono">
@@ -98,7 +118,7 @@ export default function ZionCoreWidget({ blockchain, networkStatus }: Props) {
                   </div>
                 </div>
               )}
-              {blockchain.txPoolSize !== undefined && (
+              {blockchain?.txPoolSize !== undefined && (
                 <div>
                   <div className="text-gray-300 text-sm">Mempool</div>
                   <div className="text-yellow-400 font-mono">

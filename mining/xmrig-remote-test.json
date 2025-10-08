@@ -20,7 +20,7 @@
         "mode": "auto",
         "1gb-pages": false,
         "rdmsr": true,
-        "wrmsr": true,
+        "wrmsr": false,
         "cache_qos": false,
         "numa": true,
         "scratchpad_prefetch_mode": 1
@@ -36,40 +36,51 @@
         "asm": true,
         "argon2-impl": null,
         "argon2": [0],
-        "cn": [[1, 0]],
-        "cn-heavy": [[1, 0]],
-        "cn-lite": [[1, 0]],
-        "cn-pico": [[2, 0]],
-        "cn/upx2": [[2, 0]],
-        "ghostrider": [[8, 0]],
+        "cn": [
+            [1, 0]
+        ],
+        "cn-heavy": [
+            [1, 0]
+        ],
+        "cn-lite": [
+            [1, 0]
+        ],
+        "cn-pico": [
+            [2, 0]
+        ],
+        "cn/upx2": [
+            [2, 0]
+        ],
+        "ghostrider": [
+            [8, 0]
+        ],
         "rx": [0],
         "rx/wow": [0],
         "cn-lite/0": false,
         "cn/0": false,
-        "rx/arq": "rx/wow"
+        "rx/arq": "rx/wow",
+        "rx/keva": "rx/wow"
     },
     "opencl": {
         "enabled": false,
         "cache": true,
-        "loader": null,
-        "platform": "AMD",
-        "adl": true
+        "loader": null
     },
     "cuda": {
         "enabled": false,
-        "loader": null,
-        "nvml": true
+        "loader": null
     },
     "log-file": "xmrig-local-test.log",
     "donate-level": 1,
     "donate-over-proxy": 1,
-    "pools": [{
+    "pools": [
+        {
             "algo": "rx/0",
-            "coin": "monero",
-            "url": "91.98.122.165:3333",
-            "user": "Z32f72f93c095d78fc8a2fe01c0f97fd4a7f6d1bcd9b251f73b18b5625be654e84",
+            "coin": "XMR",
+            "url": "91.98.122.165:3335",
+            "user": "ZION_MINER_2025",
             "pass": "x",
-            "rig-id": "zion-local-test",
+            "rig-id": "zion-macos-miner",
             "nicehash": false,
             "keepalive": true,
             "enabled": true,
@@ -80,11 +91,11 @@
             "socks5": null,
             "self-select": null,
             "submit-to-origin": false
-        }],
+        }
+    ],
     "retries": 5,
     "retry-pause": 5,
-    "print-time": 60,
-    "health-print-time": 60,
+    "print-time": 10,
     "dmi": true,
     "syslog": false,
     "tls": {

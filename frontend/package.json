@@ -1,15 +1,15 @@
 {
-  "name": "zion-271-frontend",
-  "version": "2.7.1",
+  "name": "zion-275-frontend",
+  "version": "2.7.5",
   "private": true,
   "scripts": {
-    "dev": "echo '🚀 ZION 2.7.1 Universal Dashboard Awakening...' && echo '⚡ JAI RAM SITA HANUMAN - Full Frontend Integration! ⚡' && next dev -p 3007",
-    "build": "echo '🌌 Cosmic build ceremony for production deployment...' && next build && echo '✨ ZION 2.7.1 Frontend Build Complete! ✨'",
-    "start": "echo '🚀 ZION 2.7.1 Stargate portal opening for production...' && next start -p 3007",
-    "lint": "echo '🎯 Oracle validates ZION 2.7.1 code quality...' && next lint",
-    "cosmic-fortune": "echo '🔮 Daily blockchain prophecy:' && ../scripts/cosmic-fortune.sh",
-    "dev-blessing": "echo '🌟 ZION 2.7.1 Cosmic development session begins!' && ../scripts/cosmic-dev-blessing.sh && npm run dev",
-    "production": "echo '🏭 ZION 2.7.1 Production deployment starting...' && npm run build && npm run start"
+    "dev": "echo '🚀 ZION 2.7.5 TestNet Dashboard Awakening...' && echo '⚡ Production Server: 91.98.122.165 - All Services Ready! ⚡' && next dev -p 3007",
+    "build": "echo '🌌 ZION 2.7.5 Production Build Ceremony...' && next build && echo '✨ ZION 2.7.5 TestNet Frontend Build Complete! ✨'",
+    "start": "echo '🚀 ZION 2.7.5 Production Portal Opening...' && next start -p 3007",
+    "lint": "echo '🎯 ZION 2.7.5 Code Quality Validation...' && next lint",
+    "cosmic-fortune": "echo '🔮 ZION 2.7.5 TestNet Daily Prophecy:' && ../scripts/cosmic-fortune.sh",
+    "dev-blessing": "echo '🌟 ZION 2.7.5 TestNet Development Session!' && ../scripts/cosmic-dev-blessing.sh && npm run dev",
+    "production": "echo '🏭 ZION 2.7.5 TestNet Production Deployment...' && npm run build && npm run start"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
