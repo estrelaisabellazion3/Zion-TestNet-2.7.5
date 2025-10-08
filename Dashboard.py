@@ -374,11 +374,19 @@ class ZIONDashboard:
         self.notebook.add(control_tab, text="🎛️ Control")
 
         self.setup_control_tab(control_tab)
+        
+        # Terminal tab
+        terminal_tab = ttk.Frame(self.notebook)
+        self.notebook.add(terminal_tab, text="💻 Terminal")
+        
+        self.setup_terminal_tab(terminal_tab)
+        
         logs_tab = ttk.Frame(self.notebook)
         self.notebook.add(logs_tab, text="📋 Logs")
 
         self.logs_text = scrolledtext.ScrolledText(logs_tab, height=20,
-                                                  bg='#1a1a2e', fg='#00ff00',
+                                                  bg=self.colors['bg_tertiary'], 
+                                                  fg=self.colors['success'],
                                                   font=('Consolas', 10))
         self.logs_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
@@ -483,6 +491,236 @@ class ZIONDashboard:
                   command=self.start_all_ai, style="Accent.TButton").pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(global_controls, text="⏹️ Stop All AI", 
                   command=self.stop_all_ai, style="Accent.TButton").pack(side=tk.LEFT, padx=(0, 10))
+
+    def setup_terminal_tab(self, parent):
+        """Setup integrated terminal tab"""
+        # Terminal container
+        terminal_container = ttk.Frame(parent, style="Main.TFrame")
+        terminal_container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # Terminal header with controls
+        header_frame = ttk.Frame(terminal_container, style="Card.TFrame")
+        header_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        ttk.Label(header_frame, text="💻 Integrated ZION Terminal", 
+                 style="Header.TLabel", font=('Segoe UI', 14, 'bold')).pack(side=tk.LEFT, padx=10)
+        
+        # Terminal controls
+        controls_frame = ttk.Frame(header_frame, style="Card.TFrame")
+        controls_frame.pack(side=tk.RIGHT, padx=10)
+        
+        ttk.Button(controls_frame, text="🧹 Clear", 
+                  command=self.clear_terminal, style="Accent.TButton").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(controls_frame, text="📋 Copy", 
+                  command=self.copy_terminal, style="Accent.TButton").pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(controls_frame, text="💾 Save Log", 
+                  command=self.save_terminal_log, style="Accent.TButton").pack(side=tk.LEFT)
+        
+        # Terminal output display
+        terminal_frame = ttk.LabelFrame(terminal_container, text="Terminal Output", 
+                                       style="Card.TFrame", padding=5)
+        terminal_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
+        
+        self.terminal_output = scrolledtext.ScrolledText(
+            terminal_frame,
+            height=20,
+            bg=self.colors['bg_primary'],
+            fg=self.colors['text_primary'],
+            font=('Consolas', 10),
+            insertbackground=self.colors['accent'],
+            selectbackground=self.colors['accent'],
+            wrap=tk.WORD
+        )
+        self.terminal_output.pack(fill=tk.BOTH, expand=True)
+        
+        # Command input section  
+        input_frame = ttk.Frame(terminal_container, style="Card.TFrame")
+        input_frame.pack(fill=tk.X, pady=(0, 5))
+        
+        ttk.Label(input_frame, text="zion@dashboard:~$", 
+                 style="Value.TLabel", font=('Consolas', 10, 'bold')).pack(side=tk.LEFT, padx=(5, 10))
+        
+        self.command_entry = tk.Entry(
+            input_frame,
+            bg=self.colors['bg_secondary'],
+            fg=self.colors['text_primary'],
+            insertbackground=self.colors['accent'],
+            font=('Consolas', 10),
+            relief='flat',
+            bd=5
+        )
+        self.command_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
+        self.command_entry.bind('<Return>', self.execute_command)
+        self.command_entry.bind('<Up>', self.command_history_up)
+        self.command_entry.bind('<Down>', self.command_history_down)
+        
+        ttk.Button(input_frame, text="▶️ Run", 
+                  command=self.execute_command, style="Accent.TButton").pack(side=tk.RIGHT)
+        
+        # Quick command buttons
+        quick_commands_frame = ttk.LabelFrame(terminal_container, text="Quick Commands", 
+                                            style="Card.TFrame", padding=5)
+        quick_commands_frame.pack(fill=tk.X, pady=(5, 0))
+        
+        quick_commands = [
+            ("📊 Pool Stats", "curl -s http://localhost:3336/api/stats | jq ."),
+            ("🔗 Blockchain Status", "curl -s http://localhost:8332/api/status"),  
+            ("⛏️ Mining Processes", "ps aux | grep -E '(zion|mining|blockchain)' | grep -v grep"),
+            ("💾 Disk Usage", "df -h /media/maitreya/ZION1"),
+            ("🔥 GPU Status", "nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits"),
+            ("📈 System Load", "top -bn1 | head -5")
+        ]
+        
+        for i, (name, cmd) in enumerate(quick_commands):
+            row = i // 3
+            col = i % 3
+            btn = ttk.Button(quick_commands_frame, text=name,
+                           command=lambda c=cmd: self.run_quick_command(c),
+                           style="Accent.TButton")
+            btn.grid(row=row, column=col, padx=5, pady=2, sticky='ew')
+            quick_commands_frame.grid_columnconfigure(col, weight=1)
+        
+        # Terminal state
+        self.command_history = []
+        self.history_index = -1
+        self.current_directory = "/media/maitreya/ZION1"
+        
+        # Welcome message
+        self.write_terminal_output("💻 ZION Integrated Terminal Ready\n")
+        self.write_terminal_output("🚀 Current directory: /media/maitreya/ZION1\n")
+        self.write_terminal_output("💡 Type commands or use Quick Commands above\n")
+        self.write_terminal_output("=" * 60 + "\n\n")
+
+    def write_terminal_output(self, text):
+        """Write text to terminal output"""
+        if hasattr(self, 'terminal_output'):
+            self.terminal_output.insert(tk.END, text)
+            self.terminal_output.see(tk.END)
+            self.root.update_idletasks()
+
+    def clear_terminal(self):
+        """Clear terminal output"""
+        if hasattr(self, 'terminal_output'):
+            self.terminal_output.delete(1.0, tk.END)
+            self.write_terminal_output("💻 Terminal cleared\n\n")
+
+    def copy_terminal(self):
+        """Copy terminal content to clipboard"""
+        if hasattr(self, 'terminal_output'):
+            content = self.terminal_output.get(1.0, tk.END)
+            self.root.clipboard_clear()
+            self.root.clipboard_append(content)
+            self.write_terminal_output("📋 Terminal content copied to clipboard\n")
+
+    def save_terminal_log(self):
+        """Save terminal log to file"""
+        if hasattr(self, 'terminal_output'):
+            try:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"/media/maitreya/ZION1/terminal_log_{timestamp}.txt"
+                content = self.terminal_output.get(1.0, tk.END)
+                with open(filename, 'w') as f:
+                    f.write(content)
+                self.write_terminal_output(f"💾 Terminal log saved: {filename}\n")
+            except Exception as e:
+                self.write_terminal_output(f"❌ Error saving log: {str(e)}\n")
+
+    def execute_command(self, event=None):
+        """Execute command from terminal input"""
+        if not hasattr(self, 'command_entry'):
+            return
+            
+        command = self.command_entry.get().strip()
+        if not command:
+            return
+        
+        # Add to history
+        if command not in self.command_history:
+            self.command_history.append(command)
+        self.history_index = len(self.command_history)
+        
+        # Clear input
+        self.command_entry.delete(0, tk.END)
+        
+        # Display command
+        self.write_terminal_output(f"zion@dashboard:~$ {command}\n")
+        
+        # Execute command
+        self.run_terminal_command(command)
+
+    def run_quick_command(self, command):
+        """Run a quick command"""
+        self.write_terminal_output(f"💨 Quick Command: {command}\n")
+        self.run_terminal_command(command)
+
+    def run_terminal_command(self, command):
+        """Execute terminal command and show output"""
+        try:
+            # Handle built-in commands
+            if command.startswith('cd '):
+                path = command[3:].strip()
+                if path == '~':
+                    path = '/media/maitreya/ZION1'
+                elif not path.startswith('/'):
+                    path = os.path.join(self.current_directory, path)
+                
+                if os.path.exists(path) and os.path.isdir(path):
+                    self.current_directory = os.path.abspath(path)
+                    self.write_terminal_output(f"📁 Changed directory to: {self.current_directory}\n")
+                else:
+                    self.write_terminal_output(f"❌ Directory not found: {path}\n")
+                return
+            elif command == 'pwd':
+                self.write_terminal_output(f"{self.current_directory}\n")
+                return
+            elif command == 'clear':
+                self.clear_terminal()
+                return
+            elif command == 'exit':
+                self.write_terminal_output("👋 Use the close button to exit dashboard\n")
+                return
+            
+            # Execute system command
+            result = subprocess.run(
+                command,
+                shell=True,
+                cwd=self.current_directory,
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+            
+            # Display output
+            if result.stdout:
+                self.write_terminal_output(result.stdout)
+            if result.stderr:
+                self.write_terminal_output(f"⚠️ {result.stderr}")
+            
+            if result.returncode != 0:
+                self.write_terminal_output(f"❌ Exit code: {result.returncode}\n")
+            
+        except subprocess.TimeoutExpired:
+            self.write_terminal_output("⏰ Command timeout (30s limit)\n")
+        except Exception as e:
+            self.write_terminal_output(f"❌ Command error: {str(e)}\n")
+        
+        self.write_terminal_output("\n")
+
+    def command_history_up(self, event):
+        """Navigate command history up"""
+        if self.command_history and self.history_index > 0:
+            self.history_index -= 1
+            self.command_entry.delete(0, tk.END)
+            self.command_entry.insert(0, self.command_history[self.history_index])
+
+    def command_history_down(self, event):
+        """Navigate command history down"""
+        if self.command_history and self.history_index < len(self.command_history) - 1:
+            self.history_index += 1
+            self.command_entry.delete(0, tk.END)
+            self.command_entry.insert(0, self.command_history[self.history_index])
+        elif self.history_index >= len(self.command_history) - 1:
+            self.command_entry.delete(0, tk.END)
 
     def setup_charts_tab(self, parent):
         """Setup Performance Charts tab"""
@@ -1407,6 +1645,8 @@ def main():
     
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
+
+
 
 if __name__ == "__main__":
     main()
