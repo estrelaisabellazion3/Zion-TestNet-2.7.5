@@ -81,6 +81,7 @@ class ZionHybridMiner:
     def _find_xmrig(self):
         """Najde Xmrig executable pro CPU mining"""
         possible_paths = [
+            '/usr/bin/xmrig',  # Systémový Xmrig
             os.path.join(os.path.dirname(__file__), '..', 'miners', 'xmrig', 'xmrig-6.20.0', 'xmrig.exe'),
             os.path.join(os.path.dirname(__file__), '..', 'miners', 'xmrig.exe'),
             'xmrig.exe'  # V PATH

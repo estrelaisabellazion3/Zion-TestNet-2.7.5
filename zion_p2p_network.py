@@ -583,14 +583,23 @@ class ZIONP2PNetwork:
 
     def get_network_status(self) -> Dict:
         """Get network status information"""
-        return {
-            'connected_peers': len([p for p in self.peers.values() if p.connected]),
-            'total_peers': len(self.peers),
-            'listening_port': self.port,
-            'node_id': self.get_node_id(),
-            'banned_peers': len(self.banned_peers),
-            'peer_scores': {k: self.peer_scores.get(k,0) for k in list(self.peer_scores)[:10]}  # sample
-        }
+        try:
+            return {
+                'connected_peers': len([p for p in self.peers.values() if hasattr(p, 'connected') and p.connected]),
+                'total_peers': len(self.peers),
+                'listening_port': self.port,
+                'node_id': self.get_node_id(),
+                'banned_peers': len(getattr(self, 'banned_peers', {})),
+                'peer_scores': getattr(self, 'peer_scores', {})
+            }
+        except Exception as e:
+            return {
+                'error': str(e),
+                'connected_peers': 0,
+                'total_peers': 0,
+                'listening_port': self.port,
+                'node_id': self.get_node_id()
+            }
 
     # ---------------- Peer Scoring / Banning ---------------- #
     def _apply_penalty(self, peer: Peer, reason: str):

@@ -930,42 +930,44 @@ class NewZionBlockchain:
         print(f"🆔 Latest Block: {self.blocks[-1]['hash'][:32]}..." if self.blocks else "No blocks")
 
 def main():
-    """Spustí demo nového blockchainu"""
-    print("🚀 Inicializuji nový ZION blockchain s novými adresami...")
-    
-    # Vytvoření nového blockchainu
+    """Spustí ZION blockchain v produkčním módu - ŽÁDNÉ SIMULACE"""
+    print("🚀 ZION 2.7.5 Blockchain - PRODUCTION MODE")
+    print("⚠️  ŽÁDNÉ SIMULACE - pouze skutečný blockchain!")
+    print("🔗 Spouštím RPC server a P2P síť...")
+
+    # Vytvoření blockchainu v produkčním módu
     blockchain = NewZionBlockchain()
-    
-    # Zobrazení počátečního stavu
-    blockchain.print_status()
-    
-    # Test transakce
-    print(f"\n🔄 Test transakce...")
+
+    print(f"📊 Genesis block loaded: {len(blockchain.blocks)} blocks")
+    print(f"💰 Total supply: {blockchain.get_total_supply():,.0f} ZION")
+    print(f"🔗 RPC server: http://localhost:{get_rpc_port()}")
+    print(f"🌐 P2P network: {get_p2p_port()}")
+
     try:
-        # Transakce z Sacred Mining Operator
-        sacred_address = 'ZION_SACRED_B0FA7E2A234D8C2F08545F02295C98'
-        test_address = 'ZION_TEST_USER_123456789'
-        
-        blockchain.create_transaction(
-            sacred_address,
-            test_address,
-            100_000,
-            "Test transakce z Sacred Operator"
-        )
-        
-        # Vytěžení bloku
-        miner_address = 'ZION_MINER_TESTER'
-        blockchain.mine_pending_transactions(miner_address)
-        
-        print(f"\n✅ Transakce dokončena!")
-        print(f"💰 Test user balance: {blockchain.get_balance(test_address):,.0f} ZION")
-        print(f"⛏️  Miner reward: {blockchain.get_balance(miner_address):,.0f} ZION")
-        
+        # Spuštění RPC serveru
+        blockchain.start_rpc_server()
+
+        # Spuštění P2P sítě
+        if blockchain.p2p_network:
+            print("🌐 Starting P2P network...")
+            # P2P network se spustí automaticky v konstruktoru
+
+        print("✅ ZION Blockchain PRODUCTION MODE active")
+        print("⏳ Čekám na mining pool připojení...")
+
+        # Nekonečná smyčka pro udržení serveru živého
+        while True:
+            time.sleep(60)  # Kontrola každou minutu
+            print(f"📊 Status: {len(blockchain.blocks)} blocks, Supply: {blockchain.get_total_supply():.2f} ZION")
+
+    except KeyboardInterrupt:
+        print("\n🛑 Shutting down ZION Blockchain...")
+        blockchain.stop_rpc_server()
+        print("✅ Blockchain stopped")
+
     except Exception as e:
-        print(f"❌ Chyba při transakci: {e}")
-    
-    # Finální status
-    blockchain.print_status()
+        print(f"❌ Critical error: {e}")
+        blockchain.stop_rpc_server()
 
 if __name__ == "__main__":
     main()

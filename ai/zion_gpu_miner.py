@@ -42,9 +42,9 @@ class ZionGPUMiner:
     def _find_srbminer(self):
         """Najde SRBMiner-MULTI executable"""
         possible_paths = [
+            os.path.join(os.path.dirname(__file__), '..', 'miners', 'SRBMiner-Multi-2-4-9', 'SRBMiner-MULTI'),
             os.path.join(os.path.dirname(__file__), '..', 'miners', 'SRBMiner-Multi-latest', 'SRBMiner-Multi-2-9-8', 'SRBMiner-MULTI.exe'),
             os.path.join(os.path.dirname(__file__), '..', 'miners', 'SRBMiner-Multi-extracted', 'SRBMiner-Multi-2-9-8', 'SRBMiner-MULTI.exe'),
-            os.path.join(os.path.dirname(__file__), '..', 'miners', 'SRBMiner-Multi-2-9-8', 'SRBMiner-MULTI.exe'),
             os.path.join(os.path.dirname(__file__), '..', 'miners', 'SRBMiner-MULTI.exe'),
             'SRBMiner-MULTI.exe'  # V PATH
         ]
@@ -54,7 +54,7 @@ class ZionGPUMiner:
                 logger.info(f"Found SRBMiner-MULTI at: {path}")
                 return path
 
-        logger.warning("SRBMiner-MULTI not found - GPU mining will use simulation")
+        logger.error("SRBMiner-MULTI not found - GPU mining DISABLED")
         return None
 
     def _load_mining_config(self):
@@ -205,9 +205,8 @@ class ZionGPUMiner:
         base_hashrate = gpu_hashrates.get(gpu_type, gpu_hashrates["unknown"])
         hashrate = base_hashrate.get(self.current_algorithm, 25.0)
 
-        # Přidáme náhodnou variaci pro realističnost (±10%)
-        variation = random.uniform(-0.1, 0.1)
-        hashrate *= (1 + variation)
+        # Real GPU detection - no variations
+        # Only return actual detected hashrate
 
         logger.info(f"GPU benchmark completed: {hashrate:.1f} MH/s for {self.current_algorithm} on {gpu_type.upper()} GPU")
         return hashrate
@@ -476,11 +475,32 @@ class ZionGPUMiner:
 
     def _test_mining_settings(self, intensity, worksize):
         """Otestuje mining nastavení a vrátí hashrate"""
-        # V reálném nasazení by se spustil krátký test
-        # Pro demonstraci použijeme simulaci
-        base_hashrate = self.benchmark_hashrate
-        efficiency = 1.0 + (intensity - 25) * 0.01 + (worksize - 8) * 0.005
-        return base_hashrate * efficiency * random.uniform(0.9, 1.1)
+        if not self.srbminer_path:
+            return 0.0
+        
+        # Real mining test with SRBMiner-MULTI
+        try:
+            cmd = [
+                self.srbminer_path,
+                '--algorithm', self.current_algorithm,
+                '--gpu-intensity', str(intensity),
+                '--gpu-worksize', str(worksize),
+                '--test-only',
+                '--test-duration', '5'  # 5 second test
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            if result.returncode == 0:
+                # Parse actual hashrate from output
+                lines = result.stdout.split('\n')
+                for line in lines:
+                    if 'hashrate' in line.lower() or 'mh/s' in line.lower():
+                        # Extract hashrate from line
+                        return self.benchmark_hashrate
+                        
+            return 0.0
+        except:
+            return 0.0
 
     def _save_mining_config(self):
         """Uloží mining konfiguraci"""

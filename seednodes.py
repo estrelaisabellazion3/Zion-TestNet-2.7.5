@@ -64,7 +64,7 @@ class ZionNetworkConfig:
     RPC_CONFIG = {
         'host': '0.0.0.0',
         'port': 8332,
-        'require_auth': True,
+        'require_auth': False,  # Dočasně zakázáno pro lokální testování
         'rate_limit_per_minute': 120,
         'burst_limit': 20,
         'cors_enabled': True,
@@ -78,7 +78,7 @@ class ZionNetworkConfig:
         'fee_percent': 0.01,  # 1%
         'payout_threshold': 1.0,  # ZION
         'difficulty': {
-            'randomx': 10000,
+            'randomx': 100,     # Velmi nízká obtížnost pro testování
             'yescrypt': 8000, 
             'autolykos_v2': 75
         },
