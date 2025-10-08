@@ -19,6 +19,7 @@ import psutil
 from flask import Flask, jsonify, request
 from threading import Thread
 import socket
+from PIL import Image, ImageTk, ImageDraw, ImageFilter
 
 # Import AI mining components
 try:
@@ -118,9 +119,12 @@ class ZIONDashboard:
         self.root = root
         self.root.title("🚀 ZION 2.7.5 Advanced Dashboard 🚀")
         self.root.geometry("1600x1000")
-        self.root.configure(bg='#0f0f23')
+        self.root.configure(bg='#000000')
         self.root.resizable(True, True)
-        
+
+        # Cache pro generované obrázky (aby GC nesmazal)
+        self._image_cache = {}
+
         # Modern styling configuration
         self.colors = {
             'bg_primary': '#0f0f23',
@@ -160,6 +164,9 @@ class ZIONDashboard:
         self.pool_status = {"miners": 0, "hashrate": 0, "blocks_found": 0}
         self.system_status = {"cpu": 0, "memory": 0, "disk": 0}
 
+        # Internal registry for started processes {name: Popen}
+        self.process_registry = {}
+
         # AI status container
         self.ai_status = {}
 
@@ -180,55 +187,245 @@ class ZIONDashboard:
         self.setup_integrated_api()
         self.start_monitoring()
         self.root.after(1000, self.auto_start_all_services)
-        self._log_debug("Dashboard initialized")
-        # Internal registry for started processes {name: Popen}
+        if hasattr(self, '_log_debug'):
+            self._log_debug("Dashboard initialized")
+
+    # ================= Rounded UI Helpers ==================
+    def _gen_neon_panel(self, w, h, radius=18, fill="#001100", outline="#00ff41", glow="#00ff41", glow_size=6, key=None):
+        """Vytvoří PNG s hladkými rohy + neon glow (vrací PhotoImage)."""
+        cache_key = key or f"panel_{w}x{h}_r{radius}_{fill}_{outline}_{glow}_{glow_size}"
+        if cache_key in self._image_cache:
+            return self._image_cache[cache_key]
+
+        img_w, img_h = w + glow_size*4, h + glow_size*4
+        base = Image.new("RGBA", (img_w, img_h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(base)
+        rect_box = (glow_size*2, glow_size*2, glow_size*2 + w, glow_size*2 + h)
+        # Glow layer
+        glow_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        glow_draw = ImageDraw.Draw(glow_layer)
+        glow_draw.rounded_rectangle(rect_box, radius=radius, fill=glow)
+        for _ in range(2):
+            glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(glow_size))
+        base.alpha_composite(glow_layer)
+        # Panel fill
+        panel_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        panel_draw = ImageDraw.Draw(panel_layer)
+        panel_draw.rounded_rectangle(rect_box, radius=radius, fill=fill, outline=outline, width=2)
+        base.alpha_composite(panel_layer)
+        photo = ImageTk.PhotoImage(base)
+        self._image_cache[cache_key] = photo
+        return photo
+
+    def _gen_neon_button(self, text, w=150, h=38, radius=14, base_fill="#001100", outline="#00ff41", glow="#00ff41", hover=False):
+        """Vytvoří obrázek tlačítka s textem a glow efektem (normální / hover)."""
+        key = f"btn_{text}_{w}x{h}_{radius}_{'hover' if hover else 'normal'}"
+        if key in self._image_cache:
+            return self._image_cache[key]
+        glow_color = glow if not hover else '#00ff88'
+        fill = base_fill if not hover else '#002200'
+        img_w, img_h = w+16, h+16
+        base = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        rect_box = (8,8,8+w,8+h)
+        # Glow
+        glow_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        gdraw = ImageDraw.Draw(glow_layer)
+        gdraw.rounded_rectangle(rect_box, radius=radius, fill=glow_color)
+        for _ in range(2):
+            glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(5))
+        base.alpha_composite(glow_layer)
+        # Button
+        btn_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        bdraw = ImageDraw.Draw(btn_layer)
+        bdraw.rounded_rectangle(rect_box, radius=radius, fill=fill, outline=outline, width=2)
+        base.alpha_composite(btn_layer)
+        # Text
+        # Text necháme renderovat přes tkinter Label (lepší ostrost a font metrics)
+        photo = ImageTk.PhotoImage(base)
+        self._image_cache[key] = photo
+        return photo
+
+        # Optimized performance history for charts
+        self.performance_history = {
+            'cpu': [], 'memory': [], 'gpu_temp': [], 'hashrate': [], 'ai_tasks': [], 'network_rx': [], 'network_tx': [], 'timestamps': []
+        }
+        self.max_history_points = 100
+
+        # Status variables
+        self.blockchain_status = {"status": "unknown", "blocks": 0, "connections": 0}
+        self.pool_status = {"miners": 0, "hashrate": 0, "blocks_found": 0}
+        self.system_status = {"cpu": 0, "memory": 0, "disk": 0}
+
+        # Internal registry for started processes {name: Popen} (musí být před auto startem)
         self.process_registry = {}
+
+        # AI status container
+        self.ai_status = {}
+
+        # Wallet session management
+        self.wallet_session = {
+            'logged_in': False,
+            'address': '',
+            'balance': 0.0,
+            'login_time': None
+        }
+
+        # Initialize AI components if available
+        if AI_COMPONENTS_AVAILABLE:
+            self._init_ai_components()
+
+        # UI setup & services
+        self.setup_ui()
+        self.setup_integrated_api()
+        self.start_monitoring()
+        self.root.after(1000, self.auto_start_all_services)
+        if hasattr(self, '_log_debug'):
+            self._log_debug("Dashboard initialized")
+
+    def create_matrix_button(self, parent, text, command):
+        """Create a Matrix neon button using generated high-quality rounded image (normal + hover)."""
+        normal_img = self._gen_neon_button(text, hover=False)
+        hover_img = self._gen_neon_button(text, hover=True)
+        wrapper = tk.Label(parent, image=normal_img, bg='#000000', cursor='hand2')
+        wrapper.image = normal_img
+        wrapper.hover_image = hover_img
+
+        txt = tk.Label(wrapper, text=text, fg='#00ff41', bg='#001100', font=('Courier New', 9, 'bold'))
+        txt.place(relx=0.5, rely=0.5, anchor='center')
+
+        def on_click(e):
+            command()
+        def on_enter(e):
+            wrapper.configure(image=hover_img)
+            txt.configure(fg='#00ff88', bg='#002200')
+        def on_leave(e):
+            wrapper.configure(image=normal_img)
+            txt.configure(fg='#00ff41', bg='#001100')
+
+        for w in (wrapper, txt):
+            w.bind('<Button-1>', on_click)
+            w.bind('<Enter>', on_enter)
+            w.bind('<Leave>', on_leave)
+        return wrapper
+
+    def draw_rounded_rect(self, canvas, x1, y1, x2, y2, radius=25, **kwargs):
+        """Draw a rounded rectangle on canvas"""
+        points = []
+        
+        # Top left arc
+        for i in range(radius):
+            x = x1 + radius - i
+            y = y1 + (radius**2 - (radius-i)**2)**0.5
+            points.append((x, y))
+        
+        # Top line
+        points.extend([(x1 + radius, y1), (x2 - radius, y1)])
+        
+        # Top right arc
+        for i in range(radius):
+            x = x2 - radius + i
+            y = y1 + (radius**2 - i**2)**0.5
+            points.append((x, y))
+        
+        # Right line
+        points.extend([(x2, y1 + radius), (x2, y2 - radius)])
+        
+        # Bottom right arc
+        for i in range(radius):
+            x = x2 - radius + (radius - i)
+            y = y2 - (radius**2 - i**2)**0.5
+            points.append((x, y))
+        
+        # Bottom line
+        points.extend([(x2 - radius, y2), (x1 + radius, y2)])
+        
+        # Bottom left arc
+        for i in range(radius):
+            x = x1 + radius - (radius - i)
+            y = y2 - (radius**2 - i**2)**0.5
+            points.append((x, y))
+        
+        # Left line
+        points.extend([(x1, y2 - radius), (x1, y1 + radius)])
+        
+        return canvas.create_polygon(points, smooth=True, **kwargs)
 
     def setup_ui(self):
         """Setup the dashboard UI"""
-        # Configure styles
+        # Configure Matrix-style cyberpunk theme with rounded corners
         style = ttk.Style()
-        style.configure("TFrame", background='#0a0a0a')
-        style.configure("TLabel", background='#0a0a0a', foreground='#00ff00', font=('Consolas', 10))
-        style.configure("TButton", background='#1a1a2e', foreground='#00ff00', font=('Consolas', 10, 'bold'))
+        style.configure("TFrame", background='#000000')
+        style.configure("TLabel", background='#000000', foreground='#00ff41', font=('Courier New', 10))
+        style.configure("TButton", background='#001100', foreground='#00ff41', font=('Courier New', 9, 'bold'),
+                       focuscolor='#00ff41', borderwidth=1, relief='solid')
+        
+        # Matrix card styles with rounded appearance
+        style.configure("Card.TFrame", background='#001100', relief='raised', borderwidth=2)
+        style.configure("RoundCard.TFrame", background='#001100', relief='ridge', borderwidth=1)
+        style.configure("Value.TLabel", background='#001100', foreground='#00ff41', font=('Courier New', 16, 'bold'))
+        style.configure("Data.TLabel", background='#001100', foreground='#00dd00', font=('Courier New', 9))
+        style.configure("Matrix.TLabel", background='#000000', foreground='#00aa00', font=('Courier New', 8))
+        
+        # Button styles with rounded Matrix look
+        style.configure("Matrix.TButton", background='#001100', foreground='#00ff41', 
+                       font=('Courier New', 9, 'bold'), relief='raised', borderwidth=2,
+                       focuscolor='#00ff41', lightcolor='#00dd00', darkcolor='#004400')
 
         # Main container
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
 
-        # Header
+        # Header with ZION Matrix logo
         header_frame = ttk.Frame(main_frame)
         header_frame.pack(fill=tk.X, pady=(0, 20))
 
-        title_label = ttk.Label(header_frame, text="🚀 ZION 2.7.5 COMPLETE INTEGRATION DASHBOARD 🚀",
-                               font=('Consolas', 16, 'bold'), foreground='#00ffff')
+        # Try to load ZION Matrix logo
+        try:
+            logo_path = "/media/maitreya/ZION1/Logo/ChatGPT Image 8. 10. 2025 20_21_45.png"
+            if os.path.exists(logo_path):
+                logo_img = Image.open(logo_path)
+                logo_img = logo_img.resize((80, 80), Image.Resampling.LANCZOS)
+                self.logo_photo = ImageTk.PhotoImage(logo_img)
+                
+                logo_label = tk.Label(header_frame, image=self.logo_photo, bg='#000000')
+                logo_label.pack(pady=(0, 10))
+        except Exception as e:
+            self._log_debug(f"Logo load failed: {e}")
+
+        title_label = ttk.Label(header_frame, text="⚡ Z I O N  M A T R I X ⚡",
+                               font=('Courier New', 22, 'bold'), foreground='#00ff41')
         title_label.pack()
 
-        subtitle_label = ttk.Label(header_frame, text="Real Blockchain • Real Mining • Real Rewards",
-                                  font=('Consolas', 12), foreground='#00ff00')
-        subtitle_label.pack()
+        subtitle_label = ttk.Label(header_frame, text="> Wake up, Neo... The blockchain has you...",
+                                  font=('Courier New', 11, 'italic'), foreground='#00aa00')
+        subtitle_label.pack(pady=(5, 0))
+        
+        matrix_label = ttk.Label(header_frame, text="[ REAL MINING • NO SIMULATIONS • FOLLOW THE WHITE RABBIT ]",
+                                font=('Courier New', 10), foreground='#008800')
+        matrix_label.pack(pady=(2, 0))
 
         # Control buttons
         control_frame = ttk.Frame(main_frame)
         control_frame.pack(fill=tk.X, pady=(0, 20))
 
-        ttk.Button(control_frame, text="🔄 Refresh", command=self.manual_refresh).pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Button(control_frame, text="🚀 Start Local Stack", command=self.start_local_stack).pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Button(control_frame, text="⏹️ Stop All", command=self.stop_all).pack(side=tk.LEFT, padx=(0, 10))
-        ttk.Button(control_frame, text="📊 View Logs", command=self.view_logs).pack(side=tk.LEFT, padx=(0, 10))
+        # Create Matrix-style rounded buttons
+        self.create_matrix_button(control_frame, "[ REFRESH ]", self.manual_refresh).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ JACK IN ]", self.start_local_stack).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ DISCONNECT ]", self.stop_all).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ VIEW MATRIX ]", self.view_logs).pack(side=tk.LEFT, padx=(0, 15))
         
-        # Wallet login section
-        wallet_frame = ttk.Frame(control_frame)
-        wallet_frame.pack(side=tk.RIGHT, padx=(10, 0))
+        # Wallet login section with Matrix styling
+        wallet_frame = tk.Frame(control_frame, bg='#000000')
+        wallet_frame.pack(side=tk.RIGHT, padx=(15, 0))
         
-        self.wallet_status_label = ttk.Label(wallet_frame, text="🔒 Not Logged In", 
-                                           foreground='#ff6666', font=('Consolas', 10, 'bold'))
-        self.wallet_status_label.pack(side=tk.LEFT, padx=(0, 10))
+        self.wallet_status_label = tk.Label(wallet_frame, text="[ AUTHENTICATION REQUIRED ]", 
+                                          fg='#ff0040', bg='#000000', font=('Courier New', 9, 'bold'))
+        self.wallet_status_label.pack(side=tk.LEFT, padx=(0, 12))
         
-        self.login_button = ttk.Button(wallet_frame, text="🔐 Login", command=self.show_wallet_login)
-        self.login_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.login_button = self.create_matrix_button(wallet_frame, "[ ENTER MATRIX ]", self.show_wallet_login)
+        self.login_button.pack(side=tk.LEFT, padx=(0, 8))
         
-        self.logout_button = ttk.Button(wallet_frame, text="🚪 Logout", command=self.wallet_logout)
+        self.logout_button = self.create_matrix_button(wallet_frame, "[ EXIT ]", self.wallet_logout)
         self.logout_button.pack(side=tk.LEFT)
         self.logout_button.pack_forget()  # Initially hidden
 
@@ -533,40 +730,48 @@ class ZIONDashboard:
         stats_frame = ttk.Frame(parent, style="Main.TFrame")
         stats_frame.pack(fill=tk.X, pady=(0, 20))
         
-        # Create stats cards
-        self.create_stats_card(stats_frame, "💰", "Balance", "0 ZION", 0)
-        self.create_stats_card(stats_frame, "⛏️", "Hashrate", "0 H/s", 1)
-        self.create_stats_card(stats_frame, "🎯", "Efficiency", "0%", 2)
-        self.create_stats_card(stats_frame, "📊", "Blocks", "0", 3)
+        # Create Matrix-style stats cards
+        self.create_stats_card(stats_frame, ">", "ZION BALANCE", "0.00000000", 0)
+        self.create_stats_card(stats_frame, ">", "HASHRATE", "0.000 H/s", 1)
+        self.create_stats_card(stats_frame, ">", "EFFICIENCY", "0.00%", 2)
+        self.create_stats_card(stats_frame, ">", "BLOCKS MINED", "0", 3)
 
     def create_stats_card(self, parent, icon, title, value, column):
-        """Create a modern stats card"""
-        card = ttk.Frame(parent, style="Card.TFrame")
-        card.grid(row=0, column=column, padx=10, pady=5, sticky='ew')
+        """Create a modern Matrix stats card with high-quality rounded neon panel"""
+        width, height = 220, 130
         parent.grid_columnconfigure(column, weight=1)
+        panel_image = self._gen_neon_panel(width, height, radius=22)
+        container = tk.Label(parent, image=panel_image, bg='#000000')
+        container.image = panel_image  # keep ref
+        container.grid(row=0, column=column, padx=12, pady=10)
+
+        # Inner content frame (transparent placement)
+        inner = tk.Frame(container, bg='#001100')
+        inner.place(relx=0.5, rely=0.5, anchor='center')
         
-        # Icon
-        icon_label = ttk.Label(card, text=icon, font=('Segoe UI', 24), 
-                              background=self.colors['bg_secondary'],
-                              foreground=self.colors['accent'])
-        icon_label.pack(pady=(10, 5))
+        # Icon with Matrix styling
+        icon_label = tk.Label(inner, text=icon, font=('Courier New', 20, 'bold'), 
+                              bg='#001100', fg='#00ff41')
+        icon_label.pack(pady=(12, 8))
         
-        # Title
-        title_label = ttk.Label(card, text=title, style="Data.TLabel")
+        # Title with Matrix styling
+        title_label = tk.Label(inner, text=title, font=('Courier New', 9, 'bold'),
+                               bg='#001100', fg='#00dd00')
         title_label.pack()
         
-        # Value
-        value_label = ttk.Label(card, text=value, style="Value.TLabel")
-        value_label.pack(pady=(0, 10))
+        # Value with Matrix styling
+        value_label = tk.Label(inner, text=value, font=('Courier New', 14, 'bold'),
+                               bg='#001100', fg='#00ff41')
+        value_label.pack(pady=(5, 12))
         
         # Store reference for updates  
-        if title == "Balance":
+        if title == "ZION BALANCE":
             self.balance_value_label = value_label
-        elif title == "Hashrate":
+        elif title == "HASHRATE":
             self.hashrate_value_label = value_label
-        elif title == "Efficiency":
+        elif title == "EFFICIENCY":
             self.efficiency_value_label = value_label
-        elif title == "Blocks":
+        elif title == "BLOCKS MINED":
             self.blocks_value_label = value_label
 
     def setup_main_content(self, parent):

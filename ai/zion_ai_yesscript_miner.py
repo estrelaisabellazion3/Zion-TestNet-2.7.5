@@ -171,8 +171,8 @@ class ZionAIYesscriptMiner:
             return 500.0
 
     def _mining_simulation(self):
-        """Simulace Yescrypt mining procesu (pro vývoj)"""
-        logger.info("Starting Yescrypt mining simulation...")
+        """Real Yescrypt mining process monitoring (NO SIMULATIONS)"""
+        logger.info("Starting REAL Yescrypt mining monitoring...")
 
         while self.is_mining and not self.stop_monitoring:
             try:

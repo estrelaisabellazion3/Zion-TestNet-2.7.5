@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-10-08T15:29:06.173645",
+  "timestamp": "2025-10-08T20:57:19.382893",
   "blockchain": {
     "running": true,
-    "height": 1,
+    "height": 0,
     "connections": 0
   },
   "mining": {
@@ -11,12 +11,12 @@
     "processes": []
   },
   "system": {
-    "cpu": 4.9,
-    "memory": 20.3,
-    "disk": 78.4
+    "cpu": 2.2,
+    "memory": 34.9,
+    "disk": 78.3
   },
   "network": {
     "pool_connection": false,
-    "peer_count": 13
+    "peer_count": 21
   }
 }
