@@ -273,6 +273,37 @@ class ZIONPoolDatabase:
                 })
             return stats
 
+    def save_pool_stats(self, stats):
+        """Save pool statistics to database"""
+        try:
+            with sqlite3.connect(self.db_file) as conn:
+                cursor = conn.cursor()
+                cursor.execute('''
+                    INSERT INTO pool_stats (
+                        total_miners, total_shares, valid_shares, invalid_shares,
+                        blocks_found, pending_payouts, active_connections,
+                        peak_connections, shares_processed, avg_processing_time_ms,
+                        errors_count, banned_ips, vardiff_enabled
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    stats.get('total_miners', 0),
+                    stats.get('total_shares', 0),
+                    stats.get('valid_shares', 0),
+                    stats.get('invalid_shares', 0),
+                    stats.get('blocks_found', 0),
+                    stats.get('pending_payouts', 0.0),
+                    stats.get('active_connections', 0),
+                    stats.get('peak_connections', 0),
+                    stats.get('shares_processed', 0),
+                    stats.get('avg_processing_time_ms', 0.0),
+                    stats.get('errors_count', 0),
+                    stats.get('banned_ips', 0),
+                    stats.get('vardiff_enabled', False)
+                ))
+                conn.commit()
+        except Exception as e:
+            print(f"Error saving pool stats: {e}")
+
 class ZIONPoolAPIHandler(BaseHTTPRequestHandler):
     """HTTP request handler for pool REST API"""
 
@@ -1231,6 +1262,8 @@ class ZionUniversalPool:
             print(f"🔍 RandomX validation result: {is_valid} for nonce {nonce}")
         elif algorithm == 'yescrypt':
             is_valid = self.validate_yescrypt_share(job_id, nonce, result, difficulty)
+            logger.info(f"🔍 Yescrypt validation result: {is_valid} for nonce {nonce}")
+            print(f"🔍 Yescrypt validation result: {is_valid} for nonce {nonce}")
         elif algorithm == 'autolykos_v2':
             is_valid = self.validate_autolykos_v2_share(job_id, nonce, result, difficulty)
         else:
