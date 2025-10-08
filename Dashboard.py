@@ -169,12 +169,172 @@ class ZIONDashboard:
 
         # UI setup & services
         self.setup_ui()
-        self.start_monitoring()
         self.setup_integrated_api()
+        self.start_monitoring()
         self.root.after(1000, self.auto_start_all_services)
         self._log_debug("Dashboard initialized")
         # Internal registry for started processes {name: Popen}
         self.process_registry = {}
+
+    def setup_ui(self):
+        """Setup the dashboard UI"""
+        # Configure styles
+        style = ttk.Style()
+        style.configure("TFrame", background='#0a0a0a')
+        style.configure("TLabel", background='#0a0a0a', foreground='#00ff00', font=('Consolas', 10))
+        style.configure("TButton", background='#1a1a2e', foreground='#00ff00', font=('Consolas', 10, 'bold'))
+
+        # Main container
+        main_frame = ttk.Frame(self.root)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # Header
+        header_frame = ttk.Frame(main_frame)
+        header_frame.pack(fill=tk.X, pady=(0, 20))
+
+        title_label = ttk.Label(header_frame, text="🚀 ZION 2.7.5 COMPLETE INTEGRATION DASHBOARD 🚀",
+                               font=('Consolas', 16, 'bold'), foreground='#00ffff')
+        title_label.pack()
+
+        subtitle_label = ttk.Label(header_frame, text="Real Blockchain • Real Mining • Real Rewards",
+                                  font=('Consolas', 12), foreground='#00ff00')
+        subtitle_label.pack()
+
+        # Control buttons
+        control_frame = ttk.Frame(main_frame)
+        control_frame.pack(fill=tk.X, pady=(0, 20))
+
+        ttk.Button(control_frame, text="🔄 Refresh", command=self.manual_refresh).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(control_frame, text="🚀 Start Local Stack", command=self.start_local_stack).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(control_frame, text="⏹️ Stop All", command=self.stop_all).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(control_frame, text="📊 View Logs", command=self.view_logs).pack(side=tk.LEFT, padx=(0, 10))
+
+        # Status indicators
+        status_frame = ttk.Frame(main_frame)
+        status_frame.pack(fill=tk.X, pady=(0, 20))
+
+        # Blockchain status
+        blockchain_frame = ttk.LabelFrame(status_frame, text="🔗 Blockchain Status", padding=10)
+        blockchain_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+
+        self.blockchain_status_label = ttk.Label(blockchain_frame, text="Status: Checking...",
+                                                font=('Consolas', 12, 'bold'))
+        self.blockchain_status_label.pack(anchor=tk.W)
+
+        self.blocks_label = ttk.Label(blockchain_frame, text="Blocks: 0")
+        self.blocks_label.pack(anchor=tk.W)
+
+        self.connections_label = ttk.Label(blockchain_frame, text="Connections: 0")
+        self.connections_label.pack(anchor=tk.W)
+
+        # Pool status
+        pool_frame = ttk.LabelFrame(status_frame, text="⛏️ Mining Pool Status", padding=10)
+        pool_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(0, 10))
+
+        self.pool_status_label = ttk.Label(pool_frame, text="Status: Checking...",
+                                          font=('Consolas', 12, 'bold'))
+        self.pool_status_label.pack(anchor=tk.W)
+
+        self.miners_label = ttk.Label(pool_frame, text="Active Miners: 0")
+        self.miners_label.pack(anchor=tk.W)
+
+        self.hashrate_label = ttk.Label(pool_frame, text="Pool Hashrate: 0 H/s")
+        self.hashrate_label.pack(anchor=tk.W)
+
+        # System status
+        system_frame = ttk.LabelFrame(status_frame, text="💻 System Status", padding=10)
+        system_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.cpu_label = ttk.Label(system_frame, text="CPU: 0%")
+        self.cpu_label.pack(anchor=tk.W)
+
+        self.memory_label = ttk.Label(system_frame, text="Memory: 0%")
+        self.memory_label.pack(anchor=tk.W)
+
+        self.disk_label = ttk.Label(system_frame, text="Disk: 0%")
+        self.disk_label.pack(anchor=tk.W)
+
+        # Quick stats cards
+        self.setup_quick_stats(main_frame)
+
+        # Main content area
+        content_frame = ttk.Frame(main_frame)
+        content_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Notebook for tabs
+        self.notebook = ttk.Notebook(content_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
+
+        # Blockchain tab
+        blockchain_tab = ttk.Frame(self.notebook)
+        self.notebook.add(blockchain_tab, text="🔗 Blockchain")
+
+        self.blockchain_text = scrolledtext.ScrolledText(blockchain_tab, height=20,
+                                                       bg='#1a1a2e', fg='#00ff00',
+                                                       font=('Consolas', 10))
+        self.blockchain_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Pool tab
+        pool_tab = ttk.Frame(self.notebook)
+        self.notebook.add(pool_tab, text="⛏️ Mining Pool")
+
+        self.pool_text = scrolledtext.ScrolledText(pool_tab, height=20,
+                                                  bg='#1a1a2e', fg='#00ff00',
+                                                  font=('Consolas', 10))
+        self.pool_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # AI Mining tab
+        ai_tab = ttk.Frame(self.notebook)
+        self.notebook.add(ai_tab, text="🤖 AI Mining")
+
+        self.setup_ai_mining_tab(ai_tab)
+
+        # Performance Charts tab
+        charts_tab = ttk.Frame(self.notebook)
+        self.notebook.add(charts_tab, text="📊 Charts")
+
+        self.setup_charts_tab(charts_tab)
+
+        # Control Panel tab
+        control_tab = ttk.Frame(self.notebook)
+        self.notebook.add(control_tab, text="🎛️ Control")
+
+        self.setup_control_tab(control_tab)
+        logs_tab = ttk.Frame(self.notebook)
+        self.notebook.add(logs_tab, text="📋 Logs")
+
+        self.logs_text = scrolledtext.ScrolledText(logs_tab, height=20,
+                                                  bg='#1a1a2e', fg='#00ff00',
+                                                  font=('Consolas', 10))
+        self.logs_text.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # Status bar
+        self.status_bar = ttk.Label(main_frame, text="Ready", relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar.pack(fill=tk.X, pady=(10, 0))
+
+    def _init_ai_components(self):
+        """Initialize AI mining components"""
+        try:
+            self.ai_components = {
+                'gpu_miner': ZionGPUMiner(),
+                'ai_afterburner': ZionAIAfterburner(),
+                'hybrid_miner': ZionHybridMiner(),
+                'yesscript_miner': ZionAIYesscriptMiner()
+            }
+
+            # Initialize AI status structure
+            self.ai_status = {
+                'gpu_miner': {'active': False, 'hashrate': 0.0, 'algorithm': 'kawpow'},
+                'ai_afterburner': {'active': False, 'tasks': 0, 'efficiency': 0.0},
+                'hybrid_miner': {'active': False, 'cpu_hashrate': 0.0, 'gpu_hashrate': 0.0, 'total_hashrate': 0.0},
+                'yesscript_miner': {'active': False, 'hashrate': 0.0, 'threads': 0}
+            }
+
+            print("🤖 AI mining components initialized")
+        except Exception as e:
+            print(f"Failed to initialize AI components: {e}")
+            self.ai_components = {}
+            self.ai_status = {}
 
     def _log_debug(self, msg: str):
         try:
@@ -1240,8 +1400,11 @@ class ZIONDashboard:
             self.update_status_bar(f"{status_icon} {status_text} - Last Update: {timestamp}")
             
         except Exception as e:
-            print(f"Update error: {e}")
-            self.update_status_bar(f"⚠️ Update Error: {str(e)[:30]} - {datetime.now().strftime('%H:%M:%S')}")
+                self._log_debug(f"safe_update_all error: {e}")
+                try:
+                    self.update_status_bar(f"⚠️ Update Error: {str(e)[:30]} - {datetime.now().strftime('%H:%M:%S')}")
+                except Exception:
+                    pass
             
     def update_quick_stats(self):
         """Update quick stats strictly from real sources (no simulations).
@@ -1271,10 +1434,15 @@ class ZIONDashboard:
             balance_value = 0.0
             if live_data:
                 balance_value = float(live_data.get('wallet', {}).get('balance', 0.0))
-            self.balance_value_label.config(text=f"{balance_value:.2f} ZION")
+            if hasattr(self, 'balance_value_label') and str(self.balance_value_label):
+                self.balance_value_label.config(text=f"{balance_value:.2f} ZION")
         except Exception as e:
             self._log_debug(f"Balance update error: {e}")
-            self.balance_value_label.config(text="0.00 ZION")
+            try:
+                if hasattr(self, 'balance_value_label') and str(self.balance_value_label):
+                    self.balance_value_label.config(text="0.00 ZION")
+            except Exception:
+                pass
 
         # Hashrate determination
         total_hashrate = 0.0
@@ -1518,7 +1686,11 @@ class ZIONDashboard:
 
     def update_status_bar(self, message):
         """Update status bar message"""
-        self.status_bar.config(text=message)
+        try:
+            if getattr(self, 'status_bar', None) and str(self.status_bar):  # widget existuje
+                self.status_bar.config(text=message)
+        except Exception as e:
+            self._log_debug(f"status_bar update skipped: {e}")
 
     def manual_refresh(self):
         """Manual refresh of all data"""
@@ -1718,7 +1890,7 @@ class ZIONDashboard:
                 self.ai_text.delete(1.0, tk.END)
                 self.ai_text.insert(tk.END, f"AI SYSTEM STATUS - {timestamp}\n\n", "header")
                 
-                # Show REAL AI components status
+                # Show REAL components STATUS
                 active_count = 0
                 
                 # Check REAL components ONLY
@@ -1858,6 +2030,9 @@ class ZIONDashboard:
             # Start P2P nodes/seeds
             self.start_p2p_nodes()
             
+            # Start real system monitor for authentic stats
+            self.start_real_system_monitor()
+            
             self.status_bar.config(text="✅ All ZION services started successfully!")
             
         except Exception as e:
@@ -1872,13 +2047,27 @@ class ZIONDashboard:
                 'zion_universal_pool',
                 'zion_rpc_server', 
                 'zion_wallet_service',
-                'zion_p2p_node'
+                'zion_p2p_node',
+                'real_system_monitor'
             ]
             
             for process in processes_to_kill:
                 subprocess.run(['pkill', '-f', process], check=False, 
                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             
+            # Also terminate processes in registry
+            for name, proc in self.process_registry.items():
+                try:
+                    if proc and proc.poll() is None:
+                        proc.terminate()
+                        try:
+                            proc.wait(timeout=3)
+                        except subprocess.TimeoutExpired:
+                            proc.kill()
+                except Exception as e:
+                    self._log_debug(f"Error terminating {name}: {e}")
+            
+            self.process_registry.clear()
             time.sleep(1)
         except Exception as e:
             print(f"Cleanup error: {e}")
@@ -1974,6 +2163,19 @@ class ZIONDashboard:
                 
         except Exception as e:
             print(f"P2P nodes start error: {e}")
+
+    def start_real_system_monitor(self):
+        """Start real system monitor for authentic stats"""
+        try:
+            cmd = ['python3', 'real_system_monitor.py']
+            self.monitor_process = subprocess.Popen(
+                cmd, cwd='/media/maitreya/ZION1',
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            print("📊 Real system monitor started")
+        except Exception as e:
+            print(f"Real system monitor start error: {e}")
 
     def start_local_stack(self):
         """Enhanced start local stack with all services"""
