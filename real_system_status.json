@@ -1,22 +1,38 @@
 {
-  "timestamp": "2025-10-08T20:57:19.382893",
+  "timestamp": "2025-10-09T16:42:14.303904",
   "blockchain": {
     "running": true,
     "height": 0,
     "connections": 0
   },
   "mining": {
-    "active": false,
-    "hashrate": 0.0,
-    "processes": []
+    "active": true,
+    "hashrate": 2823.75,
+    "processes": [
+      {
+        "name": "sudo",
+        "pid": 142362,
+        "cpu": 0.0
+      },
+      {
+        "name": "sudo",
+        "pid": 142375,
+        "cpu": 0.0
+      },
+      {
+        "name": "xmrig",
+        "pid": 142376,
+        "cpu": 1129.5
+      }
+    ]
   },
   "system": {
-    "cpu": 2.2,
-    "memory": 34.9,
-    "disk": 78.3
+    "cpu": 100.0,
+    "memory": 34.3,
+    "disk": 81.2
   },
   "network": {
     "pool_connection": false,
-    "peer_count": 21
+    "peer_count": 18
   }
 }

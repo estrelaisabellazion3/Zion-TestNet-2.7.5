@@ -282,6 +282,20 @@ class ZIONDashboard:
         if hasattr(self, '_log_debug'):
             self._log_debug("Dashboard initialized")
 
+    def _safe_widget_update(self, widget_attr, update_func):
+        """Safely update widget if it exists and is valid"""
+        try:
+            if hasattr(self, widget_attr):
+                widget = getattr(self, widget_attr)
+                if widget:
+                    widget.winfo_exists()  # Test if widget is valid
+                    update_func(widget)
+        except (tk.TclError, AttributeError):
+            # Widget was destroyed or doesn't exist
+            pass
+        except Exception as e:
+            self._log_debug(f"{widget_attr} update error: {e}")
+
     def create_matrix_button(self, parent, text, command):
         """Create a Matrix neon button using generated high-quality rounded image (normal + hover)."""
         normal_img = self._gen_neon_button(text, hover=False)
@@ -1664,15 +1678,12 @@ class ZIONDashboard:
                 balance_value = self.wallet_session['balance']
             elif live_data:
                 balance_value = float(live_data.get('wallet', {}).get('balance', 0.0))
-            if hasattr(self, 'balance_value_label') and str(self.balance_value_label):
-                self.balance_value_label.config(text=f"{balance_value:.2f} ZION")
+            self._safe_widget_update('balance_value_label', 
+                                    lambda w: w.config(text=f"{balance_value:.2f} ZION"))
         except Exception as e:
             self._log_debug(f"Balance update error: {e}")
-            try:
-                if hasattr(self, 'balance_value_label') and str(self.balance_value_label):
-                    self.balance_value_label.config(text="0.00 ZION")
-            except Exception:
-                pass
+            self._safe_widget_update('balance_value_label', 
+                                   lambda w: w.config(text="0.00 ZION"))
 
         # Hashrate determination
         total_hashrate = 0.0
@@ -1698,21 +1709,26 @@ class ZIONDashboard:
 
         # Update hashrate label
         if total_hashrate > 0:
-            self.hashrate_value_label.config(text=f"{total_hashrate:.1f} H/s", foreground='#00ff88')
+            self._safe_widget_update('hashrate_value_label', 
+                                   lambda w: w.config(text=f"{total_hashrate:.1f} H/s", foreground='#00ff88'))
         else:
-            self.hashrate_value_label.config(text="0.0 H/s", foreground='#666666')
+            self._safe_widget_update('hashrate_value_label', 
+                                   lambda w: w.config(text="0.0 H/s", foreground='#666666'))
 
         # Efficiency (simple derived metric)
         try:
             if total_hashrate > 0 and hasattr(self.system_stats, 'cpu_usage'):
                 efficiency = max(0.0, 100.0 - float(self.system_stats.cpu_usage))
                 color = '#00ff88' if efficiency > 70 else '#ffaa00' if efficiency > 40 else '#ff6666'
-                self.efficiency_value_label.config(text=f"{efficiency:.0f}%", foreground=color)
+                self._safe_widget_update('efficiency_value_label', 
+                                       lambda w: w.config(text=f"{efficiency:.0f}%", foreground=color))
             else:
-                self.efficiency_value_label.config(text="0%", foreground='#666666')
+                self._safe_widget_update('efficiency_value_label', 
+                                       lambda w: w.config(text="0%", foreground='#666666'))
         except Exception as e:
             self._log_debug(f"Efficiency calc error: {e}")
-            self.efficiency_value_label.config(text="0%", foreground='#666666')
+            self._safe_widget_update('efficiency_value_label', 
+                                   lambda w: w.config(text="0%", foreground='#666666'))
 
         # Blocks (height)
         try:
@@ -1722,12 +1738,15 @@ class ZIONDashboard:
             elif real_status:
                 blocks = int(real_status.get('blockchain', {}).get('height', 0))
             if blocks > 0:
-                self.blocks_value_label.config(text=str(blocks), foreground='#00ff88')
+                self._safe_widget_update('blocks_value_label', 
+                                       lambda w: w.config(text=str(blocks), foreground='#00ff88'))
             else:
-                self.blocks_value_label.config(text="0", foreground='#666666')
+                self._safe_widget_update('blocks_value_label', 
+                                       lambda w: w.config(text="0", foreground='#666666'))
         except Exception as e:
             self._log_debug(f"Blocks update error: {e}")
-            self.blocks_value_label.config(text="0", foreground='#666666')
+            self._safe_widget_update('blocks_value_label', 
+                                   lambda w: w.config(text="0", foreground='#666666'))
             
     def get_current_blocks(self):
         """Get REAL current block count from live stats only"""
@@ -1915,10 +1934,17 @@ class ZIONDashboard:
             self._log_debug(f"update_logs error: {e}")
 
     def update_status_bar(self, message):
-        """Update status bar message"""
+        """Update status bar message with proper widget validation"""
         try:
-            if getattr(self, 'status_bar', None) and str(self.status_bar):  # widget existuje
-                self.status_bar.config(text=message)
+            if hasattr(self, 'status_bar') and self.status_bar:
+                # Check if widget still exists and is valid
+                try:
+                    self.status_bar.winfo_exists()
+                    self.status_bar.config(text=message)
+                except tk.TclError:
+                    # Widget was destroyed
+                    self._log_debug(f"status_bar destroyed, skipping update")
+                    return
         except Exception as e:
             self._log_debug(f"status_bar update skipped: {e}")
 
