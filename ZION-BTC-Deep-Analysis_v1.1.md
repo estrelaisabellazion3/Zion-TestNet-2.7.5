@@ -24,7 +24,7 @@ Důležitá oprava: Celková zásoba ZION je 144,000,000,000 (144 miliard), niko
 | Algoritmy | YesScript (CPU), KawPow (GPU) | SHA-256 (ASIC) |
 | Block time | ~150 s (adaptivní) | ~600 s (fixní) |
 | TPS | ~47 (multi-chain) | ~7 |
-| L2 | Multi-chain routing | Lightning Network |
+| L2 | Multi-chain routing + PoC nadstavba | Lightning Network |
 | AI | Optimalizace těžby + bezpečnost | Není v protokolu |
 
 ---
@@ -78,6 +78,7 @@ ZION preferuje širší decentralizaci skrze dostupné GPU/CPU, Bitcoin spoléh�
 
 - ZION AIAfterburner/Hybrid: řízení alokace výkonu, výběr algoritmu, predikce obtížnosti, anomálie v síti.
 - AI validace: heuristiky na L1/L2 (detekce outlierů, rychlá reakce na útoky).
+- **Proof-of-Consciousness (PoC) L2**: vědomostní validace, DharmaMultiplier pro mining odměny, duchovní alignment check.
 - Bitcoin: konzervativní bezpečnostní model bez AI v protokolu; síla je v masivním hashrate a jednoduchosti.
 
 ---
@@ -88,6 +89,7 @@ ZION preferuje širší decentralizaci skrze dostupné GPU/CPU, Bitcoin spoléh�
 - Mikroplatby a L2 routing (vysoká oběžnost tokenu, nízké tx fees)  
 - AI workload sharing (přebytečný výkon v síti)  
 - Green mining programy (solární/komunitní energetika)
+- **PoC Consciousness Economy**: vědomostní validace, duchovní incentivy, dharma staking rewards
 
 ---
 
@@ -95,9 +97,37 @@ ZION preferuje širší decentralizaci skrze dostupné GPU/CPU, Bitcoin spoléh�
 
 1. Multi-platform build (Win11/macOS/Linux) – distribuce GUI (AppImage/DMG/EXE)
 2. Síťové incentivy pro validátory a těžaře (PoS/PoW/AI)
-3. Exchange listing pipeline (KYC/AML compliant)
-4. Cross-chain bridge (BTC/ETH/SOL) a custody řešení
-5. Průběžné snižování inflace dle aktivity (AI řízení emisí)
+3. **PoC L2 implementace**: vědomostní atestace, DharmaMultiplier systém, consciousness validace
+4. Exchange listing pipeline (KYC/AML compliant)
+5. Cross-chain bridge (BTC/ETH/SOL) a custody řešení
+6. Průběžné snižování inflace dle aktivity (AI řízení emisí)
+
+---
+
+## 🌈 6.5) Proof-of-Consciousness (PoC) - L2 Nadstavba
+
+### 6.5.1 PoC Architektura
+- **L1 Base**: Standardní PoW/PoS konsenzus (YesScript, KawPow)
+- **L2 PoC**: Vědomostní validace nad základním protokolem
+- **DharmaMultiplier**: Mining power × consciousness alignment
+
+### 6.5.2 Consciousness Metrics
+```
+MiningPower = CPUPower × DharmaMultiplier × UniversalAlignment
+
+DharmaMultiplier = (
+    meditation_hours_monthly × 0.1 +
+    charitable_actions × 0.2 +
+    environmental_care × 0.15 +
+    spiritual_growth × 0.3 +
+    community_service × 0.25
+) / 100
+```
+
+### 6.5.3 Implementace Timeline
+- **Q1 2026**: PoC testnet, vědomostní atestace
+- **Q2 2026**: DharmaMultiplier beta, consciousness validace
+- **Q3 2026**: Full PoC L2 launch, duchovní incentivy
 
 ---
 
@@ -109,6 +139,7 @@ ZION preferuje širší decentralizaci skrze dostupné GPU/CPU, Bitcoin spoléh�
 
 ### 7.2 Staking/PoS návrh
 - Target Net APY: 6–12% (dle lockup délky a slashing parametrů)
+- **PoC Dharma Bonus**: +2–5% APY za vědomostní validace a duchovní alignment
 - Tolerance inflace: krytá růstem sítě a poplatky (burn/fee recyklace)
 
 ### 7.3 Burn/Buyback Mechaniky (volitelně)
@@ -120,13 +151,15 @@ ZION preferuje širší decentralizaci skrze dostupné GPU/CPU, Bitcoin spoléh�
 ## 🥇 8) Závěr
 
 - ZION s 144B supply cílí na **utility/settlement** roli v ekosystému s vysokým TPS, nízkými poplatky a dostupným miningem/POW+POS+AI.
+- **PoC L2 nadstavba** přináší unikátní vědomostní ekonomiku - první blockchain s duchovním alignmentem.
 - Bitcoin zůstává **store-of-value** etalon s bezkonkurenčním network effect, ale bez AI a s nižší škálovatelností.
-- Koexistence je logická: **BTC = uložiště hodnoty**, **ZION = palivo a výpočetní síť**.
+- Koexistence je logická: **BTC = uložiště hodnoty**, **ZION = palivo, výpočetní síť a consciousness economy**.
 
 ### Doporučení
 - Krátkodobě: doručit multiplatform buildy a L2 routing  
-- Střednědobě: incentive programy (staking/mining/AI) a listování  
-- Dlouhodobě: governance, burn mechaniky, institucionální partnerství
+- Střednědobě: incentive programy (staking/mining/AI) a listování
+- **PoC Priority**: implementace vědomostní validace jako L2 diferenciace
+- Dlouhodobě: governance, burn mechaniky, institucionální partnerství, consciousness economy
 
 ---
 
