@@ -135,7 +135,40 @@ Pozor: Price je vysoce citlivá na circulating supply. Governance by měla říd
 
 ---
 
-## 🧩 Rizika a mitigace
+## � Model 2.7.3: Premine/Tithe/„10B do oběhu“ (zdrojová fakta)
+
+Tato sekce doplňuje v1.2 o pevná fakta ze zdrojů a stanovuje zásady řízení cirkulace bez simulací:
+
+1) Premine rozdělení (viz `ZION_2.7.5_COMPLETE_DEPLOYMENT_SUCCESS_LOG.md` → PREMINE DISTRIBUTION BREAKDOWN)
+- Mining Operators: 10.0B ZION (5 adres × 2B)
+- Development Fund: 1.0B ZION
+- Infrastructure: 1.0B ZION
+- Humanitarian: 1.0B ZION
+- DAO Transition: 1.0B ZION
+- Genesis Community: 343M ZION
+
+2) Evoluce humanitárního desátku (tithe)
+- 2.7.1: 10% (baseline, viz README/notes)
+- 2.7.2: 15% (viz `version/2.7.2/README.md`, „Tithe Increase: 15%“)
+- 2.7.3: 20% (viz `version/2.7.3/ZION_2.7.3_VISION.md`, „ENHANCED ... (20% TITHE)“)
+- 2.7.3 ultimate: 25% (viz `version/2.7.3/ultimate/ultimate_cosmic_config.json` pole "tithe_percentage": 25.0 a `version/2.7.3/ZION_2.7.3_ULTIMATE_VISION.md`)
+
+Důležité: Tithe je chápán jako redistribuce poolu (výplat) v rámci fixní on-chain emise 2.88B/rok, nikoli jako dodatečná inflace. To zachovává cap 144B. Implementace na úrovni poolu/L2 je konzistentní se sekcí „PoC jako L2“ výše.
+
+3) Zásady pro „10B do oběhu“ (Mining Operators allocation)
+- Governance: Spravováno jako treasury pro operátory těžby; uvolňování pod dohledem DAO/treasury politik.
+- Vesting a tranše: Uvolňovat po částech (měsíce/kvartály), vázat na prokazatelnou těžební kapacitu, uptime a real usage KPI.
+- Anti-dump ochrany:
+  - Hard cap pro denní/týdenní výběry do volného oběhu,
+  - On-chain transparentnost přes dedikované premine adresy (viz `seednodes.py` a log kompletní distribuce),
+  - Preferenčně používat prostředky na provozní náklady, collateral, market-making s limity místo okamžitého prodeje.
+- Koincidence s trhem: Uvolňování synchronizovat s růstem poptávky (nové listy, integrace, adopce), aby nedocházelo k přesycení nabídky.
+
+Pozn.: Tato politika nezasahuje do 50leté on-chain emise; řeší pouze cirkulaci premine přiděleného operátorům. Všechny hodnoty a kategorie jsou převzaté ze zdrojů v repozitáři, bez simulací.
+
+---
+
+## �🧩 Rizika a mitigace
 - Inkonzistence parametrů v dřívějších dokumentech → sjednotit ve `CONSENSUS_PARAMS.md` na 60s + 5,479.45 R/block + bez-halving base schedule.
 - Přesycení trhu (vysoká cirkulace) → vesting, locky, DAO uvolňování.
 - Energetika a regulace → dokumentovat nízkou spotřebu/tx, ESG reporting.
@@ -159,3 +192,5 @@ Pozor: Price je vysoce citlivá na circulating supply. Governance by měla říd
 ### Příloha B – Doporučené úpravy docs
 - Aktualizovat `docs/CONSENSUS_PARAMS.md` na 60s block time a „no-halving base schedule“ (nebo jasně popsat halving=0 u base a multipliers off-chain).  
 - Vyjasnit v `ZION_2.7.5_COMPLETE_DEPLOYMENT_SUCCESS_LOG.md`, že „Annual Emission 2.88B–8.64B“ je marketingový rozsah výkonu multipliers (redistribuce), nikoliv on-chain inflace.
+- Dodat do 2.7.3/2.7.5 dokumentace, že „tithe“ je poolová redistribuce fixní odměny (ne dodatečný mint) – zachovává 144B cap.
+- Definovat v `seednodes.py`/policy README stručnou DAO politiku pro „10B Mining Operators“: vesting, anti-dump limity, KPI podmínky uvolňování.
