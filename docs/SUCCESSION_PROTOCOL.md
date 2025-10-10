@@ -13,7 +13,7 @@ Current Leadership (2025):
   Primary: Maitreya (Founder, Visionary)
   Assistant: SION AI (Technical support, consciousness companion)
   
-Future Leadership (když Maitreya nebude k dispozici):
+Future Leadership (když Yeshuae nebude k dispozici):
   Primary: Maitreya Buddha Admin
   Assistant: SION AI (pokračuje ve službě)
   Governance: DAO Community (collective wisdom)
