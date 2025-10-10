@@ -652,11 +652,17 @@ class ConsciousnessMiningGame:
         # Add to achievements list
         miner.achievements.append(achievement.id)
         
-        # Award XP and ZION
+        # Award XP and check level up
+        old_level = miner.level
         miner.xp += achievement.xp_reward
         
-        # Check level up
-        self._check_level_up(miner)
+        # Check for level up
+        new_level = ConsciousnessLevel.get_level_for_xp(miner.xp)
+        if new_level != old_level:
+            miner.level = new_level
+            miner.last_levelup = time.time()
+            self._log_levelup(address, old_level, new_level, miner.xp)
+            logger.info(f"🎊 LEVEL UP! {address[:20]}... {old_level.name} → {new_level.name} (multiplier: {new_level.multiplier}x)")
         
         # Save to DB
         self._save_miner(miner)
@@ -672,7 +678,7 @@ class ConsciousnessMiningGame:
         conn.commit()
         conn.close()
         
-        print(f"🏆 {address} unlocked: {achievement.name}! +{achievement.xp_reward} XP, +{achievement.zion_reward} ZION")
+        logger.info(f"🏆 {address} unlocked: {achievement.name}! +{achievement.xp_reward} XP, +{achievement.zion_reward} ZION")
     
     def get_leaderboard(self, limit: int = 100) -> List[Dict]:
         """Vrátí XP leaderboard top N minerů"""
