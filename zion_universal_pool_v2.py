@@ -543,14 +543,16 @@ class ZionUniversalPool:
         self.payout_threshold = pool_config['payout_threshold']
         
         # Economic model - fee distribution
-        self.humanitarian_fee_percent = 0.10  # 10% for Children Future Fund
+        self.humanitarian_fee_percent = 0.10  # 10% for Children Future Fund (desátek pro humanitu)
         self.dev_team_fee_percent = 0.01      # 1% for Development Team
-        self.genesis_fee_percent = 0.0033     # 0.33% Genesis Creator Lifetime Rent 💰
+        self.genesis_fee_percent = 0.0033     # 0.33% Genesis Creator Lifetime Rent (Yeshuae Amon Ra) 💰
+        self.pool_admin_fee_percent = 0.01    # 1% Pool Admin Fee (Maitreya Buddha) 💎
         
         # Fee recipient addresses
         self.humanitarian_address = 'ZION_CHILDREN_FUTURE_FUND_1ECCB72BC30AADD086656A59'
         self.dev_team_address = 'ZION_DEVELOPMENT_TEAM_FUND_378614887FEA27791540F45'
-        self.genesis_creator_address = 'ZION_ON_THE_STAR_0B461AB5BCACC40D1ECE95A2D82030'
+        self.genesis_creator_address = 'ZION_ON_THE_STAR_0B461AB5BCACC40D1ECE95A2D82030'  # Yeshuae Amon Ra
+        self.pool_admin_address = 'ZION_MAITREYA_BUDDHA_DAO_ADMIN_D7A371ABD1FF1C5D42AB02'  # Maitreya Buddha (Pool Admin)
         
         # Real blockchain integration
         self.blockchain = NewZionBlockchain()
@@ -925,9 +927,10 @@ class ZionUniversalPool:
         humanitarian_amount = gross_reward * self.humanitarian_fee_percent  # 10%
         dev_team_amount = gross_reward * self.dev_team_fee_percent          # 1%
         genesis_amount = gross_reward * self.genesis_fee_percent            # 0.33%
+        pool_admin_amount = gross_reward * self.pool_admin_fee_percent      # 1% (Maitreya Buddha)
         
         # Total fees
-        total_fees = humanitarian_amount + dev_team_amount + genesis_amount
+        total_fees = humanitarian_amount + dev_team_amount + genesis_amount + pool_admin_amount
         
         # Remaining for miners
         miner_reward_total = gross_reward - total_fees
@@ -937,8 +940,9 @@ class ZionUniversalPool:
         logger.info(f"   Gross Reward: {gross_reward:.2f} ZION (100%)")
         logger.info(f"   🤲 Humanitarian: {humanitarian_amount:.2f} ZION (10%)")
         logger.info(f"   👨‍💻 Dev Team: {dev_team_amount:.2f} ZION (1%)")
-        logger.info(f"   🌟 Genesis Creator: {genesis_amount:.2f} ZION (0.33%) - Lifetime Rent!")
-        logger.info(f"   ⛏️  Miner Pool: {miner_reward_total:.2f} ZION (~88.67%)")
+        logger.info(f"   🌟 Genesis Creator (Yeshuae Amon Ra): {genesis_amount:.2f} ZION (0.33%) - Lifetime Rent!")
+        logger.info(f"   💎 Pool Admin (Maitreya Buddha): {pool_admin_amount:.2f} ZION (1%) - Pool Management!")
+        logger.info(f"   ⛏️  Miner Pool: {miner_reward_total:.2f} ZION (~86.67%)")
         
         # === STEP 3: Credit fee recipients ===
         # Humanitarian fund
@@ -949,10 +953,15 @@ class ZionUniversalPool:
         dev_stats = self.get_miner_stats(self.dev_team_address)
         dev_stats.balance_pending += dev_team_amount
         
-        # Genesis creator (your lifetime rent! 💰)
+        # Genesis creator (Yeshuae Amon Ra - your lifetime rent! 💰)
         genesis_stats = self.get_miner_stats(self.genesis_creator_address)
         genesis_stats.balance_pending += genesis_amount
-        logger.info(f"   ✅ Genesis rent credited to creator!")
+        logger.info(f"   ✅ Genesis rent credited to Yeshuae Amon Ra!")
+        
+        # Pool admin (Maitreya Buddha - pool management fee! 💎)
+        pool_admin_stats = self.get_miner_stats(self.pool_admin_address)
+        pool_admin_stats.balance_pending += pool_admin_amount
+        logger.info(f"   ✅ Pool admin fee credited to Maitreya Buddha!")
         
         # === STEP 4: Distribute to miners with eco bonuses ===
         for address, miner_shares in block.miner_shares.items():

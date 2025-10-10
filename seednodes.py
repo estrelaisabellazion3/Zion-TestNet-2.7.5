@@ -194,12 +194,14 @@ ZION_PREMINE_ADDRESSES = {
     # Subtotal Mining Operators: 8.25B ZION
     
     # HIRANYAGARBHA DAO WINNERS - 1.75B ZION (unlocks Oct 10, 2035)
+    # NOTE: Voting weights are for YEAR 10 (2035) - Maitreya still has 70% at this point!
+    # Winners share 30% of voting power (from 20-year DAO transition plan)
     'ZION_HIRANYAGARBHA_WINNER_1ST_GOLDEN_EGG_CEO': {
         'purpose': 'Chief Enlightenment Officer (Golden Egg Winner) - DAO Seat 1',
         'amount': 1_000_000_000,  # 1B ZION
         'type': 'dao_governance',
         'unlock_date': '2035-10-10',
-        'voting_weight': 0.40,
+        'voting_weight': 0.15,  # 15% of total (50% of 30% community share in 2035)
         'role': 'Chief Enlightenment Officer'
     },
     'ZION_HIRANYAGARBHA_WINNER_2ND_SILVER_SEEKER_CCO': {
@@ -207,7 +209,7 @@ ZION_PREMINE_ADDRESSES = {
         'amount': 500_000_000,  # 500M ZION
         'type': 'dao_governance',
         'unlock_date': '2035-10-10',
-        'voting_weight': 0.25,
+        'voting_weight': 0.10,  # 10% of total (33% of 30% community share in 2035)
         'role': 'Chief Consciousness Officer'
     },
     'ZION_HIRANYAGARBHA_WINNER_3RD_BRONZE_BODHISATTVA_CAO': {
@@ -215,10 +217,10 @@ ZION_PREMINE_ADDRESSES = {
         'amount': 250_000_000,  # 250M ZION
         'type': 'dao_governance',
         'unlock_date': '2035-10-10',
-        'voting_weight': 0.15,
+        'voting_weight': 0.05,  # 5% of total (17% of 30% community share in 2035)
         'role': 'Chief Awakening Officer'
     },
-    # Subtotal DAO Winners: 1.75B ZION
+    # Subtotal DAO Winners: 1.75B ZION, 30% voting power total (in 2035)
     
     # INFRASTRUCTURE & DEVELOPMENT - 4.34B ZION
     'ZION_DEVELOPMENT_TEAM_FUND_378614887FEA27791540F45': {
@@ -240,8 +242,16 @@ ZION_PREMINE_ADDRESSES = {
         'purpose': 'Maitreya Buddha - DAO Admin & Genesis Creator',
         'amount': 1_000_000_000,  # 1B ZION
         'type': 'admin',
-        'voting_weight': 0.20,
-        'veto_power': True
+        'voting_weight': 0.70,  # 70% in Year 10 (2035), per 20-year transition plan
+        'veto_power': True,
+        'transition_schedule': {
+            'year_1_5': 1.00,    # 100% control (2025-2030)
+            'year_6_12': 0.70,   # 70% control (2030-2037)
+            'year_13_15': 0.50,  # 50% control (2037-2040)
+            'year_16_18': 0.25,  # 25% control (2040-2043)
+            'year_19_20': 0.10,  # 10% control (2043-2045)
+            'year_21': 0.00      # Full DAO (2045+)
+        }
     },
     'ZION_ON_THE_STAR_GENESIS_CREATOR_RENT_0B461AB5BCACC': {
         'purpose': 'Genesis Creator Lifetime Rent (0.33% of block rewards)',
@@ -261,11 +271,16 @@ assert MINING_OPERATORS_TOTAL == 8_250_000_000, f"Mining operators mismatch! Exp
 DAO_WINNERS_TOTAL = sum(addr['amount'] for addr in ZION_PREMINE_ADDRESSES.values() if addr['type'] == 'dao_governance')
 assert DAO_WINNERS_TOTAL == 1_750_000_000, f"DAO winners mismatch! Expected 1.75B, got {DAO_WINNERS_TOTAL:,}"
 
+# DAO VOTING WEIGHTS VALIDATION (for Year 10 - 2035)
+DAO_VOTING_WEIGHTS = sum(addr.get('voting_weight', 0) for addr in ZION_PREMINE_ADDRESSES.values() if addr.get('voting_weight'))
+assert abs(DAO_VOTING_WEIGHTS - 1.0) < 0.01, f"DAO voting weights mismatch! Expected 1.00, got {DAO_VOTING_WEIGHTS}"
+
 print(f"✅ Premine validation OK:")
 print(f"   Mining Operators: {MINING_OPERATORS_TOTAL:,} ZION")
-print(f"   DAO Winners: {DAO_WINNERS_TOTAL:,} ZION")
+print(f"   DAO Winners: {DAO_WINNERS_TOTAL:,} ZION (30% voting in 2035)")
 print(f"   Infrastructure: {PREMINE_TOTAL - MINING_OPERATORS_TOTAL - DAO_WINNERS_TOTAL:,} ZION")
 print(f"   TOTAL PREMINE: {PREMINE_TOTAL:,} ZION")
+print(f"   DAO Voting (2035): Maitreya 70% + Winners 30% = {DAO_VOTING_WEIGHTS:.0%}")
 
 # GLOBÁLNÍ FUNKCE PRO JEDNODUCHOU INTEGRACI
 def get_seed_nodes(network_type: str = "production") -> List[str]:

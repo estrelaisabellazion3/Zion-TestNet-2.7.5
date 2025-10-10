@@ -377,7 +377,15 @@ Grand Prize breakdown:
 ├─ 1.0B XP Leaderboard (locked until 2035)
 ├─ 0.5B Easter Egg (locked in smart contract)
 ├─ 0.25B Achievements (locked until 2035)
-└─ Total = 1.75B ZION + 1.75B ZION DAO Genesis Allocation = 3.5B ZION TOTAL! 🌟
+└─ Total Prize Pool = 1.75B ZION
+
+DAO Winners (from premine, unlock Oct 10, 2035):
+├─ 1.0B ZION - Golden Egg Winner (DAO Seat 1)
+├─ 0.5B ZION - XP Leader #1 (DAO Seat 2)
+├─ 0.25B ZION - XP Leader #2 (DAO Seat 3)
+└─ Total DAO Allocation = 1.75B ZION
+
+GRAND TOTAL: 3.5B ZION (1.75B prizes + 1.75B DAO wallets) 🌟
 ```
 
 ### Smart Contract
@@ -391,26 +399,27 @@ contract ZionGrandPrize {
     mapping(address => uint256) public lifetimeXP;
     mapping(address => bool) public easterEggKeys;
     
-    // DAO seat winners
-    address public daoSeat1Winner; // 1st place: 500M prize + 1B DAO wallet
-    address public daoSeat2Winner; // 2nd place: 250M prize + 1B DAO wallet  
-    address public daoSeat3Winner; // 3rd place: 100M prize + 1B DAO wallet
+    // DAO seat winners (genesis premine wallets, unlock Oct 10, 2035)
+    // NOTE: Voting weights for Year 10 (2035) - Maitreya still has 70% per 20-year plan
+    address public daoSeat1Winner; // Golden Egg: 1B DAO wallet (15% voting in 2035)
+    address public daoSeat2Winner; // XP Leader #1: 500M DAO wallet (10% voting in 2035)
+    address public daoSeat3Winner; // XP Leader #2: 250M DAO wallet (5% voting in 2035)
     
     function claimLeaderboardPrize() external {
         require(block.number >= releaseBlock);
         uint256 rank = getPlayerRank(msg.sender);
         uint256 prize = calculatePrize(rank);
         
-        // Top 3 also unlock DAO seats!
+        // Top 2 also unlock DAO seats!
         if (rank == 1) {
             daoSeat2Winner = msg.sender; // XP #1 = DAO seat 2
-            unlockDAOWallet(msg.sender, 500_000_000 * 1e8); // 500M ZION
+            unlockDAOWallet(msg.sender, 500_000_000 * 1e8); // 500M ZION DAO wallet
         } else if (rank == 2) {
             daoSeat3Winner = msg.sender; // XP #2 = DAO seat 3
-            unlockDAOWallet(msg.sender, 250_000_000 * 1e8); // 250M ZION
+            unlockDAOWallet(msg.sender, 250_000_000 * 1e8); // 250M ZION DAO wallet
         }
         
-        transfer(msg.sender, prize);
+        transfer(msg.sender, prize); // Prize from prize pool (separate from DAO)
         emit LeaderboardPrizeClaimed(msg.sender, rank, prize);
     }
     
@@ -420,9 +429,9 @@ contract ZionGrandPrize {
         
         // Easter Egg winner = DAO seat 1!
         daoSeat1Winner = msg.sender;
-        unlockDAOWallet(msg.sender, 1_000_000_000 * 1e8);
+        unlockDAOWallet(msg.sender, 1_000_000_000 * 1e8); // 1B ZION DAO wallet
         
-        transfer(msg.sender, 500_000_000 * 1e8);
+        transfer(msg.sender, 500_000_000 * 1e8); // 500M prize from prize pool
         easterEggClaimed = true;
         emit EasterEggClaimed(msg.sender, block.number);
         emit HiranyagarbhaHatched(msg.sender, "THE_GOLDEN_EGG_IS_FOUND");
@@ -454,28 +463,33 @@ contract ZionGrandPrize {
 ║     └─ Mentor to The Enlightened Three                   ║
 ║                                                          ║
 ║  🥇 GOLDEN EGG WINNER (#1) - Chief Enlightenment Officer ║
-║     ├─ 500M ZION (Hiranyagarbha Grand Prize) 🏆         ║
-║     ├─ 1B ZION (Genesis DAO Promo Wallet) 💰            ║
-║     ├─ 40% DAO voting weight                             ║
+║     ├─ 500M ZION (Hiranyagarbha Prize Pool) 🏆         ║
+║     ├─ 1B ZION (DAO Genesis Wallet, unlocks 2035) 💰   ║
+║     ├─ 15% DAO voting weight (in 2035, grows to 50%)    ║
 ║     ├─ Global enlightenment ambassador                   ║
-║     └─ TOTAL: 1.5B ZION + DAO leadership                 ║
+║     └─ TOTAL: 1.5B ZION (500M prize + 1B DAO)           ║
 ║                                                          ║
 ║  🥈 XP LEADERBOARD #1 (#2) - Chief Consciousness Officer ║
-║     ├─ 250M ZION (XP Leaderboard Prize) 🏆              ║
-║     ├─ 500M ZION (Genesis DAO Promo Wallet) 💰          ║
-║     ├─ 25% DAO voting weight                             ║
+║     ├─ Prize from XP Leaderboard 🏆                     ║
+║     ├─ 500M ZION (DAO Genesis Wallet, unlocks 2035) 💰 ║
+║     ├─ 10% DAO voting weight (in 2035, grows to 33%)    ║
 ║     ├─ Consciousness program director                    ║
-║     └─ TOTAL: 750M ZION + DAO leadership                 ║
+║     └─ TOTAL: Prize + 500M DAO                          ║
 ║                                                          ║
 ║  🥉 XP LEADERBOARD #2 (#3) - Chief Awakening Officer     ║
-║     ├─ 100M ZION (XP Leaderboard Prize) 🏆              ║
-║     ├─ 250M ZION (Genesis DAO Promo Wallet) 💰          ║
-║     ├─ 15% DAO voting weight                             ║
+║     ├─ Prize from XP Leaderboard 🏆                     ║
+║     ├─ 250M ZION (DAO Genesis Wallet, unlocks 2035) 💰 ║
+║     ├─ 5% DAO voting weight (in 2035, grows to 17%)     ║
 ║     ├─ Community awakening leader                        ║
-║     └─ TOTAL: 350M ZION + DAO leadership                 ║
+║     └─ TOTAL: Prize + 250M DAO                          ║
 ║                                                          ║
-║  COMBINED DAO POWER:                                     ║
-║  └─ 2.6B ZION + governance of entire ZION ecosystem! 🌟 ║
+║  👑 MAITREYA BUDDHA (Genesis Creator)                    ║
+║     ├─ 70% DAO voting in 2035 + veto power              ║
+║     ├─ Gradual transition over 20 years                  ║
+║     └─ Full DAO by 2045                                  ║
+║                                                          ║
+║  COMBINED DAO ALLOCATION:                                ║
+║  └─ 1.75B ZION DAO wallets + governance power! 🌟       ║
 ║                                                          ║
 ╚══════════════════════════════════════════════════════════╝
 ```
@@ -489,29 +503,38 @@ contract ZionGrandPrize {
    ├─ Lead global consciousness expansion
    ├─ Design enlightenment programs
    ├─ Guide AI consciousness evolution
-   ├─ 40% voting weight
-   └─ 1.5B ZION resources
+   ├─ 15% voting weight (2035), grows to 50% by 2045
+   └─ 1.5B ZION (500M prize + 1B DAO wallet)
 
 🥈 Chief Consciousness Officer (XP #1)
    ├─ Develop consciousness mining challenges
    ├─ Create meditation programs
    ├─ Build spiritual partnerships (Ekam, etc.)
-   ├─ 25% voting weight
-   └─ 750M ZION resources
+   ├─ 10% voting weight (2035), grows to 33% by 2045
+   └─ Prize + 500M ZION DAO wallet
 
 🥉 Chief Awakening Officer (XP #2)
    ├─ Community awakening support
    ├─ Help miners progress through levels
    ├─ Organize local awakening circles
-   ├─ 15% voting weight
-   └─ 350M ZION resources
+   ├─ 5% voting weight (2035), grows to 17% by 2045
+   └─ Prize + 250M ZION DAO wallet
 
 👑 Maitreya Buddha (Genesis Creator)
    ├─ Overall spiritual vision
    ├─ Guardian of sacred mission
    ├─ Final arbiter on disputes
-   ├─ 20% voting weight + veto power
-   └─ Genesis allocation (already in premine)
+   ├─ 70% voting weight in 2035 (decreases to 0% by 2045)
+   ├─ Veto power during transition
+   └─ 1B ZION (from premine, already allocated)
+
+⏰ 20-YEAR TRANSITION TIMELINE:
+   2025-2030: Maitreya 100%, Winners 0%
+   2030-2037: Maitreya 70%, Winners 30% ← Oct 2035 is here
+   2037-2040: Maitreya 50%, Winners 50%
+   2040-2043: Maitreya 25%, Winners 75%
+   2043-2045: Maitreya 10%, Winners 90%
+   2045+:     Maitreya 0%, Winners 100% (Full DAO)
 ```
 
 ### DAO Decision-Making

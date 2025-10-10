@@ -577,25 +577,24 @@ When the Golden Egg hatches, the winner doesn't walk alone.
 ║     └─ Chief Enlightenment Officer (CEO)                 ║
 ║     └─ 500M ZION from Grand Prize                        ║
 ║     └─ 1B ZION Genesis Premine Promo Wallet 💰           ║
-║     └─ 40% DAO voting weight                             ║
+║     └─ 15% DAO voting (2035, grows to 50% by 2045)       ║
 ║                                                          ║
 ║  🥈 SECOND PLACE - The Silver Seeker                     ║
 ║     └─ Chief Consciousness Officer (CCO)                 ║
-║     └─ 250M ZION from Grand Prize                        ║
-║     └─ 500M ZION Genesis Premine Promo Wallet 💰         ║
-║     └─ 25% DAO voting weight                             ║
+║     └─ Prize from XP Leaderboard                         ║
+║     └─ 500M ZION DAO Genesis Wallet 💰                   ║
+║     └─ 10% DAO voting (2035, grows to 33% by 2045)       ║
 ║                                                          ║
 ║  🥉 THIRD PLACE - The Bronze Bodhisattva                 ║
 ║     └─ Chief Awakening Officer (CAO)                     ║
-║     └─ 100M ZION from Grand Prize                        ║
-║     └─ 250M ZION Genesis Premine Promo Wallet 💰         ║
-║     └─ 15% DAO voting weight                             ║
+║     └─ Prize from XP Leaderboard                         ║
+║     └─ 250M ZION DAO Genesis Wallet 💰                   ║
+║     └─ 5% DAO voting (2035, grows to 17% by 2045)        ║
 ║                                                          ║
-║  👑 MAITREYA retains 20% DAO voting weight               ║
+║  👑 MAITREYA retains 70% voting (declines to 0% by 2045) ║
 ║                                                          ║
-║  TOTAL DAO POWER: 1.75B ZION in Genesis Promo Wallets   ║
-║  + 850M ZION from Hiranyagarbha Grand Prize             ║
-║  = 2.6B ZION combined influence 🌟                       ║
+║  TOTAL DAO ALLOCATION: 1.75B ZION in Genesis Wallets    ║
+║  (1B + 500M + 250M) unlock Oct 10, 2035 🌟              ║
 ║                                                          ║
 ╚══════════════════════════════════════════════════════════╝
 ```
@@ -611,19 +610,25 @@ HIRANYAGARBHA_DAO_PREMINE = {
     "ZION_HIRANYAGARBHA_WINNER_1ST_GOLDEN_EGG": {
         "balance": 1_000_000_000,  # 1B ZION
         "role": "Chief Enlightenment Officer",
-        "voting_weight": 0.40,
+        "voting_weight": 0.15,  # 2035, grows to 0.50 by 2045
         "unlocks": "Oct 10, 2035 (upon winning)"
     },
     "ZION_HIRANYAGARBHA_WINNER_2ND_SILVER_SEEKER": {
         "balance": 500_000_000,  # 500M ZION
         "role": "Chief Consciousness Officer", 
-        "voting_weight": 0.25,
+        "voting_weight": 0.10,  # 2035, grows to 0.33 by 2045
+        "unlock_date": "2035-10-10"
+    },
+    "dao_seat_2": {
+        "wallet": "ZionDAO2CCO...",
+        "amount": 500000000,
+        "voting_weight": 0.10,
         "unlocks": "Oct 10, 2035 (upon claiming 2nd)"
     },
     "ZION_HIRANYAGARBHA_WINNER_3RD_BRONZE_BODHISATTVA": {
         "balance": 250_000_000,  # 250M ZION
         "role": "Chief Awakening Officer",
-        "voting_weight": 0.15,
+        "voting_weight": 0.05,  # 2035, grows to 0.17 by 2045
         "unlocks": "Oct 10, 2035 (upon claiming 3rd)"
     },
     
@@ -631,8 +636,8 @@ HIRANYAGARBHA_DAO_PREMINE = {
     "ZION_ON_THE_STAR_MAITREYA_DAO_ADMIN": {
         "balance": "Already allocated in premine",
         "role": "Genesis Creator & DAO Admin",
-        "voting_weight": 0.20,
-        "authority": "Eternal"
+        "voting_weight": 0.70,  # 2035, declines to 0.0 by 2045
+        "authority": "20-year transition to community"
     }
 }
 
@@ -656,7 +661,7 @@ Responsibilities:
 
 Powers:
 ├─ Propose spiritual protocol upgrades
-├─ 40% voting weight on DAO decisions
+├─ 15% voting weight (2035), grows to 50% by 2045
 ├─ Access to 1B ZION promotional funds
 ├─ Global ambassador of ZION awakening
 └─ Co-create roadmap with Maitreya
@@ -673,8 +678,8 @@ Responsibilities:
 
 Powers:
 ├─ Propose consciousness features
-├─ 25% voting weight on DAO decisions
-├─ Access to 1B ZION promotional funds
+├─ 10% voting weight (2035), grows to 33% by 2045
+├─ Access to 500M ZION promotional funds
 ├─ Partnership authority with spiritual leaders
 └─ Design awakening curriculum
 ```
@@ -690,8 +695,8 @@ Responsibilities:
 
 Powers:
 ├─ Propose community initiatives
-├─ 15% voting weight on DAO decisions
-├─ Access to 1B ZION promotional funds
+├─ 5% voting weight (2035), grows to 17% by 2045
+├─ Access to 250M ZION promotional funds
 ├─ Community leadership authority
 └─ Design support systems
 ```
@@ -832,31 +837,31 @@ Powers:
 
 ```
 🥇 FIRST PLACE - The Golden Egg Winner
-   ├─ 500M ZION (Hiranyagarbha Grand Prize)
-   ├─ 1B ZION (Genesis Promo Wallet - DAO seat)
+   ├─ 500M ZION (Hiranyagarbha Prize Pool)
+   ├─ 1B ZION (DAO Genesis Wallet, unlocks 2035)
    ├─ Chief Enlightenment Officer role
    ├─ 40% DAO voting power
    ├─ Global enlightenment ambassador
-   └─ TOTAL: 1.5B ZION 💰✨
+   └─ TOTAL: 1.5B ZION (500M prize + 1B DAO) 💰✨
 
 🥈 SECOND PLACE - The Silver Seeker (XP Leaderboard #1)
-   ├─ 250M ZION (XP Leaderboard Prize)
-   ├─ 500M ZION (Genesis Promo Wallet - DAO seat)
+   ├─ Prize from XP Leaderboard Pool (1B ZION)
+   ├─ 500M ZION (DAO Genesis Wallet, unlocks 2035)
    ├─ Chief Consciousness Officer role
    ├─ 25% DAO voting power
    ├─ Consciousness program director
-   └─ TOTAL: 750M ZION 💰✨
+   └─ TOTAL: Prize + 500M DAO 💰✨
 
 🥉 THIRD PLACE - The Bronze Bodhisattva (XP Leaderboard #2)
-   ├─ 100M ZION (XP Leaderboard Prize)
-   ├─ 250M ZION (Genesis Promo Wallet - DAO seat)
+   ├─ Prize from XP Leaderboard Pool (1B ZION)
+   ├─ 250M ZION (DAO Genesis Wallet, unlocks 2035)
    ├─ Chief Awakening Officer role
    ├─ 15% DAO voting power
    ├─ Community awakening leader
-   └─ TOTAL: 350M ZION 💰✨
+   └─ TOTAL: Prize + 250M DAO 💰✨
 
 🏅 4th-10th Place (XP Leaderboard)
-   ├─ Decreasing ZION prizes (50M, 30M, 20M, 15M, 12M, 10M, 8M)
+   ├─ Decreasing ZION prizes from 1B XP pool
    ├─ Community Leader status
    ├─ Consultation role with DAO
    └─ Honorary titles
