@@ -2,6 +2,7 @@
 """
 ZION Universal Mining Pool with Real Hash Validation & Reward System
 Supports ZION addresses, real ProgPow validation, and proportional rewards
+🎮 NOW WITH CONSCIOUSNESS MINING GAME - 10-Year Evolution Journey!
 """
 import asyncio
 import json
@@ -20,6 +21,9 @@ import threading
 # Import the real ZION blockchain and centralized config
 from new_zion_blockchain import NewZionBlockchain
 from seednodes import ZionNetworkConfig, get_pool_port
+
+# 🎮 CONSCIOUSNESS MINING GAME
+from consciousness_mining_game import ConsciousnessMiningGame
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -323,6 +327,14 @@ class ZIONPoolAPIHandler(BaseHTTPRequestHandler):
                 self.send_pool_info_response()
             elif self.path == '/api/health':
                 self.send_health_response()
+            # 🎮 CONSCIOUSNESS GAME API ENDPOINTS
+            elif self.path.startswith('/api/consciousness/profile/'):
+                address = self.path.split('/api/consciousness/profile/')[-1]
+                self.send_consciousness_profile(address)
+            elif self.path == '/api/consciousness/leaderboard':
+                self.send_consciousness_leaderboard()
+            elif self.path == '/api/consciousness/levels':
+                self.send_consciousness_levels()
             else:
                 self.send_error_response(404, "Endpoint not found")
         except Exception as e:
@@ -409,6 +421,47 @@ class ZIONPoolAPIHandler(BaseHTTPRequestHandler):
             'database_status': 'connected' if hasattr(self.pool, 'db') else 'disconnected'
         }
         self.send_json_response(health)
+
+    # 🎮 CONSCIOUSNESS GAME API METHODS
+
+    def send_consciousness_profile(self, address):
+        """Send consciousness profile for miner"""
+        if not address:
+            self.send_error_response(400, "Miner address required")
+            return
+
+        try:
+            profile = self.pool.consciousness_game.get_miner_stats(address)
+            self.send_json_response(profile)
+        except Exception as e:
+            logger.error(f"Consciousness profile error: {e}")
+            self.send_error_response(500, f"Error fetching consciousness profile: {e}")
+
+    def send_consciousness_leaderboard(self):
+        """Send consciousness leaderboard (top 100 miners by XP)"""
+        try:
+            leaderboard = self.pool.consciousness_game.get_leaderboard(limit=100)
+            self.send_json_response({'leaderboard': leaderboard})
+        except Exception as e:
+            logger.error(f"Consciousness leaderboard error: {e}")
+            self.send_error_response(500, f"Error fetching leaderboard: {e}")
+
+    def send_consciousness_levels(self):
+        """Send information about all consciousness levels"""
+        try:
+            from consciousness_mining_game import ConsciousnessLevel
+            levels = []
+            for level in ConsciousnessLevel:
+                levels.append({
+                    'name': level.name,
+                    'multiplier': level.value['multiplier'],
+                    'xp_required': level.value['xp_required'],
+                    'description': level.value.get('description', '')
+                })
+            self.send_json_response({'levels': levels})
+        except Exception as e:
+            logger.error(f"Consciousness levels error: {e}")
+            self.send_error_response(500, f"Error fetching levels: {e}")
 
     def send_json_response(self, data, status_code=200):
         """Send JSON response"""
@@ -561,6 +614,14 @@ class ZionUniversalPool:
 
         # Database integration
         self.db = ZIONPoolDatabase()
+
+        # 🎮 CONSCIOUSNESS MINING GAME - 10-Year Evolution Journey!
+        self.consciousness_game = ConsciousnessMiningGame()
+        logger.info("🎮 Consciousness Mining Game initialized! 10-year journey begins...")
+        logger.info("   📊 9 Consciousness Levels: Physical → ON_THE_STAR")
+        logger.info("   💰 Bonus Pool: 1,902.59 ZION/block from 10B premine")
+        logger.info("   🏆 Grand Prize: 1.75B ZION distributed Oct 10, 2035")
+        logger.info("   🥚 Hiranyagarbha: 500M ZION for enlightened winner")
 
         # API server from centralized config
         api_port = pool_config['api_port']
@@ -807,6 +868,16 @@ class ZionUniversalPool:
                     # Calculate and distribute rewards via blockchain transactions
                     self.calculate_block_rewards_via_blockchain(current_block)
 
+                    # 🎮 CONSCIOUSNESS GAME: Award XP for block discovery!
+                    # Award to the miner who found the block (highest shares contributor)
+                    try:
+                        if current_block.miner_shares:
+                            block_finder = max(current_block.miner_shares.items(), key=lambda x: x[1])[0]
+                            self.consciousness_game.on_block_found(block_finder)
+                            logger.info(f"🎮 Block finder {block_finder} awarded 1,000 XP!")
+                    except Exception as e:
+                        logger.error(f"Consciousness game block XP error: {e}")
+
                     # Start new block
                     self.start_new_block()
 
@@ -940,12 +1011,22 @@ class ZionUniversalPool:
                 
                 final_reward = base_reward * eco_multiplier
                 
+                # 🎮 CONSCIOUSNESS GAME: Add consciousness bonus!
+                consciousness_bonus = 0.0
+                try:
+                    consciousness_bonus = self.consciousness_game.calculate_bonus_reward(address, base_reward)
+                    if consciousness_bonus > 0:
+                        final_reward += consciousness_bonus
+                        logger.info(f"🎮 Consciousness bonus for {address}: +{consciousness_bonus:.8f} ZION")
+                except Exception as e:
+                    logger.error(f"Consciousness game bonus error: {e}")
+                
                 # Create blockchain transaction for the reward
                 try:
                     self.blockchain.create_transaction(
                         self.pool_wallet_address,  # From pool wallet
                         address,                   # To miner
-                        final_reward,              # Reward amount
+                        final_reward,              # Reward amount (including consciousness bonus!)
                         f"Pool mining reward for block {block.height} - {miner_shares} shares ({algorithm})"
                     )
                     logger.info(f"✅ Created blockchain transaction: {final_reward:.8f} ZION to {address}")
@@ -953,7 +1034,8 @@ class ZionUniversalPool:
                     logger.error(f"❌ Failed to create reward transaction for {address}: {e}")
                 
                 eco_info = f"(eco: {eco_multiplier}x)" if eco_multiplier != 1.0 else ""
-                logger.info(f"Miner {address} [{algorithm}]: {miner_shares} shares ({proportion:.4f}) = {final_reward:.8f} ZION {eco_info}")
+                bonus_info = f" + consciousness: {consciousness_bonus:.8f}" if consciousness_bonus > 0 else ""
+                logger.info(f"Miner {address} [{algorithm}]: {miner_shares} shares ({proportion:.4f}) = {final_reward:.8f} ZION {eco_info}{bonus_info}")
 
     def process_pending_payouts(self) -> List[Dict[str, Any]]:
         """Process miners who have reached payout threshold"""
@@ -1811,6 +1893,12 @@ class ZionUniversalPool:
 
             miner['share_count'] = miner.get('share_count', 0) + 1
             total_shares = miner['share_count']
+
+            # 🎮 CONSCIOUSNESS GAME: Award XP for share submission!
+            try:
+                self.consciousness_game.on_share_submitted(address)
+            except Exception as e:
+                logger.error(f"Consciousness game share XP error: {e}")
 
             print(f"🎯 {algorithm.upper()} Share: job={job_id}, nonce={nonce}")
             print(f"✅ VALID {algorithm.upper()} SHARE ACCEPTED (Total: {total_shares})")

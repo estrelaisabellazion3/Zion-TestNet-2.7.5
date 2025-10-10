@@ -648,6 +648,63 @@ class ConsciousnessMiningGame:
     def _unlock_achievement(self, address: str, achievement: Achievement):
         """Odemkne achievement"""
         miner = self.get_or_create_miner(address)
+        
+        # Add to achievements list
+        miner.achievements.append(achievement.id)
+        
+        # Award XP and ZION
+        miner.xp += achievement.xp_reward
+        
+        # Check level up
+        self._check_level_up(miner)
+        
+        # Save to DB
+        self._save_miner(miner)
+        
+        # Log unlock
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO achievement_unlocks 
+            (miner_address, achievement_id, unlocked_at)
+            VALUES (?, ?, ?)
+        """, (address, achievement.id, time.time()))
+        conn.commit()
+        conn.close()
+        
+        print(f"🏆 {address} unlocked: {achievement.name}! +{achievement.xp_reward} XP, +{achievement.zion_reward} ZION")
+    
+    def get_leaderboard(self, limit: int = 100) -> List[Dict]:
+        """Vrátí XP leaderboard top N minerů"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT address, level, xp, total_shares, total_blocks_found, 
+                   ai_challenges_completed, meditation_hours, community_karma
+            FROM miner_consciousness
+            ORDER BY xp DESC
+            LIMIT ?
+        """, (limit,))
+        
+        leaderboard = []
+        rank = 1
+        for row in cursor.fetchall():
+            leaderboard.append({
+                'rank': rank,
+                'address': row[0],
+                'level': row[1],
+                'xp': row[2],
+                'total_shares': row[3],
+                'blocks_found': row[4],
+                'ai_challenges': row[5],
+                'meditation_hours': row[6],
+                'community_karma': row[7]
+            })
+            rank += 1
+        
+        conn.close()
+        return leaderboard
         miner.achievements.append(achievement.id)
         self._save_miner(miner)
         
