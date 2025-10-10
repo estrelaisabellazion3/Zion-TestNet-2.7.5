@@ -109,7 +109,7 @@ Doporučení: Aktivně řídit cirkulaci (vesting/loky), aby cena nebyla řídce
 - PoC L2 (vědomostní ekonomika): stimuluje stake/účast, zvyšuje „stickiness“ sítě
 
 ### 3) Valuační scénáře (zjednodušené)
-Předpokládejme 10% cirkulace při T0 a zvyšující se oběh následně lineárně s adopcí. Mezní ceny při cílových market capecha:
+Předpokládejme 10% cirkulace při T0 a zvyšující se oběh následně lineárně s adopcí. Mezní ceny při cílových market capech:
 - Early: $500M–$1B → $0.035–$0.07 při 10% circ
 - Mid (adopce, L2, bridge): $2.5B–$5B → $0.17–$0.35
 - Long-term (infrastruktura, PoC ekonomika): $10B+ → $0.69+ (při 10% circ; při vyšší circ klesá price/token)

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-🚀 ZION 2.7.5 SSH Dashboard - Optimized Edition 🚀
+🚀 ZION 2.7.5 SSH Dashboard - Matrix Edition 🚀
 Remote blockchain monitoring and Yescrypt mining dashboard
 Connects to SSH server with running blockchain node
+Beautiful Matrix UI with rounded corners and neon effects
 """
 
 import tkinter as tk
@@ -19,6 +20,7 @@ import psutil
 from typing import Dict, Any, Optional
 import paramiko
 from pathlib import Path
+from PIL import Image, ImageTk, ImageDraw, ImageFilter
 
 # Mining imports
 try:
@@ -30,14 +32,21 @@ except ImportError as e:
     print(f"⚠️ Miner not available: {e}")
     MINER_AVAILABLE = False
 
-# SSH Configuration
-SSH_CONFIG = {
-    'host': 'your_ssh_server_ip',  # Nastavte IP vašeho SSH serveru
-    'port': 22,
-    'username': 'your_username',
-    'password': None,  # Nebo použijte SSH klíč
-    'key_file': None,  # Path to SSH private key
-}
+# SSH Configuration - load from config file
+def load_ssh_config():
+    config_path = Path('config/ssh_config.json')
+    if config_path.exists():
+        with open(config_path) as f:
+            return json.load(f)
+    return {
+        'host': '91.98.122.165',
+        'port': 22,
+        'username': 'root',
+        'password': None,
+        'key_file': None
+    }
+
+SSH_CONFIG = load_ssh_config()
 
 class SSHConnectionManager:
     """Manages SSH connection to remote blockchain server"""
@@ -130,16 +139,42 @@ class SSHConnectionManager:
             self.connected = False
 
 class ZIONSSHDashboard:
-    """ZION Dashboard with SSH remote monitoring and local mining"""
+    """ZION Dashboard with SSH remote monitoring, local mining and beautiful Matrix UI"""
     
     def __init__(self, root):
         self.root = root
-        self.root.title("🚀 ZION 2.7.5 SSH Dashboard - Optimized")
-        self.root.geometry("1400x900")
-        self.root.configure(bg='#001100')
+        self.root.title("🚀 ZION 2.7.5 Matrix SSH Dashboard 🚀")
+        self.root.geometry("1600x1000")
+        self.root.configure(bg='#000000')
+        self.root.resizable(True, True)
+        
+        # Image cache for rounded UI elements
+        self._image_cache = {}
+        
+        # Matrix colors
+        self.colors = {
+            'bg_primary': '#000000',
+            'bg_secondary': '#001100',
+            'bg_tertiary': '#002200',
+            'accent': '#00ff41',
+            'accent2': '#00dd00',
+            'glow': '#00ff88',
+            'text': '#00ff41',
+            'text_dim': '#00aa00',
+            'warning': '#ffaa00',
+            'error': '#ff3366'
+        }
         
         # SSH connection
         self.ssh = SSHConnectionManager(SSH_CONFIG)
+        
+        # Wallet session
+        self.wallet_session = {
+            'logged_in': False,
+            'address': '',
+            'balance': 0.0,
+            'login_time': None
+        }
         
         # Mining
         self.miner = None
@@ -164,70 +199,368 @@ class ZIONSSHDashboard:
         self.hashrate_history = []
         self.max_history = 100
         
-        # Setup UI
+        # Setup UI with Matrix design
         self.setup_ui()
         
         # Start monitoring
         self.start_monitoring()
     
+    # ================= Matrix UI Helpers ==================
+    def _gen_neon_panel(self, w, h, radius=18, fill="#001100", outline="#00ff41", glow="#00ff41", glow_size=6, key=None):
+        """Create PNG with smooth rounded corners + neon glow effect"""
+        cache_key = key or f"panel_{w}x{h}_r{radius}_{fill}_{outline}_{glow}_{glow_size}"
+        if cache_key in self._image_cache:
+            return self._image_cache[cache_key]
+
+        img_w, img_h = w + glow_size*4, h + glow_size*4
+        base = Image.new("RGBA", (img_w, img_h), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(base)
+        rect_box = (glow_size*2, glow_size*2, glow_size*2 + w, glow_size*2 + h)
+        # Glow layer
+        glow_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        glow_draw = ImageDraw.Draw(glow_layer)
+        glow_draw.rounded_rectangle(rect_box, radius=radius, fill=glow)
+        for _ in range(2):
+            glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(glow_size))
+        base.alpha_composite(glow_layer)
+        # Panel fill
+        panel_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        panel_draw = ImageDraw.Draw(panel_layer)
+        panel_draw.rounded_rectangle(rect_box, radius=radius, fill=fill, outline=outline, width=2)
+        base.alpha_composite(panel_layer)
+        photo = ImageTk.PhotoImage(base)
+        self._image_cache[cache_key] = photo
+        return photo
+
+    def _gen_neon_button(self, text, w=150, h=38, radius=14, base_fill="#001100", outline="#00ff41", glow="#00ff41", hover=False):
+        """Create button image with text and glow effect (normal / hover)"""
+        key = f"btn_{text}_{w}x{h}_{radius}_{'hover' if hover else 'normal'}"
+        if key in self._image_cache:
+            return self._image_cache[key]
+        glow_color = glow if not hover else '#00ff88'
+        fill = base_fill if not hover else '#002200'
+        img_w, img_h = w+16, h+16
+        base = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        rect_box = (8,8,8+w,8+h)
+        # Glow
+        glow_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        gdraw = ImageDraw.Draw(glow_layer)
+        gdraw.rounded_rectangle(rect_box, radius=radius, fill=glow_color)
+        for _ in range(2):
+            glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(5))
+        base.alpha_composite(glow_layer)
+        # Button
+        btn_layer = Image.new("RGBA", (img_w, img_h), (0,0,0,0))
+        bdraw = ImageDraw.Draw(btn_layer)
+        bdraw.rounded_rectangle(rect_box, radius=radius, fill=fill, outline=outline, width=2)
+        base.alpha_composite(btn_layer)
+        photo = ImageTk.PhotoImage(base)
+        self._image_cache[key] = photo
+        return photo
+
+    def create_matrix_button(self, parent, text, command):
+        """Create Matrix neon button with hover effects"""
+        normal_img = self._gen_neon_button(text, hover=False)
+        hover_img = self._gen_neon_button(text, hover=True)
+        wrapper = tk.Label(parent, image=normal_img, bg='#000000', cursor='hand2')
+        wrapper.image = normal_img
+        wrapper.hover_image = hover_img
+
+        txt = tk.Label(wrapper, text=text, fg='#00ff41', bg='#001100', 
+                      font=('Courier New', 9, 'bold'))
+        txt.place(relx=0.5, rely=0.5, anchor='center')
+
+        def on_click(e):
+            command()
+        def on_enter(e):
+            wrapper.config(image=hover_img)
+            txt.config(bg='#002200')
+        def on_leave(e):
+            wrapper.config(image=normal_img)
+            txt.config(bg='#001100')
+
+        for w in (wrapper, txt):
+            w.bind('<Button-1>', on_click)
+            w.bind('<Enter>', on_enter)
+            w.bind('<Leave>', on_leave)
+        return wrapper
+    
     def setup_ui(self):
-        """Setup dashboard UI"""
+        """Setup the Matrix dashboard UI with rounded corners"""
         # Main container
-        main_frame = tk.Frame(self.root, bg='#001100')
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        main_frame = tk.Frame(self.root, bg='#000000')
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # ========== HEADER WITH LOGO ==========
+        header_frame = tk.Frame(main_frame, bg='#000000')
+        header_frame.pack(fill=tk.X, pady=(0, 20))
+
+        # Try to load ZION Matrix logo
+        try:
+            logo_path = Path('assets/zion_logo.png')
+            if logo_path.exists():
+                logo_img = Image.open(logo_path)
+                logo_img = logo_img.resize((80, 80), Image.Resampling.LANCZOS)
+                logo_photo = ImageTk.PhotoImage(logo_img)
+                logo_label = tk.Label(header_frame, image=logo_photo, bg='#000000')
+                logo_label.image = logo_photo
+                logo_label.pack(side=tk.LEFT, padx=(0, 20))
+        except Exception as e:
+            print(f"Logo not found: {e}")
+
+        # Title section
+        title_section = tk.Frame(header_frame, bg='#000000')
+        title_section.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
-        # Header
-        self.setup_header(main_frame)
+        title_label = tk.Label(title_section, text="⚡ Z I O N  M A T R I X  S S H ⚡",
+                               font=('Courier New', 22, 'bold'), fg='#00ff41', bg='#000000')
+        title_label.pack(anchor='w')
+
+        subtitle_label = tk.Label(title_section, text="> Wake up, Neo... The blockchain is on SSH...",
+                                 font=('Courier New', 11, 'italic'), fg='#00aa00', bg='#000000')
+        subtitle_label.pack(anchor='w', pady=(5, 0))
+        
+        matrix_label = tk.Label(title_section, text=f"[ REMOTE MONITORING • {SSH_CONFIG['host']} • YESCRYPT MINING ]",
+                               font=('Courier New', 10), fg='#008800', bg='#000000')
+        matrix_label.pack(anchor='w', pady=(2, 0))
+
+        # ========== CONTROL BUTTONS ==========
+        control_frame = tk.Frame(main_frame, bg='#000000')
+        control_frame.pack(fill=tk.X, pady=(0, 20))
+
+        self.create_matrix_button(control_frame, "[ REFRESH ]", self.manual_refresh).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ SSH STATUS ]", self.check_ssh_connection).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ START MINING ]", self.start_mining).pack(side=tk.LEFT, padx=(0, 15))
+        self.create_matrix_button(control_frame, "[ STOP MINING ]", self.stop_mining).pack(side=tk.LEFT, padx=(0, 15))
+        
+        # Wallet login section
+        wallet_frame = tk.Frame(control_frame, bg='#000000')
+        wallet_frame.pack(side=tk.RIGHT, padx=(15, 0))
+        
+        self.wallet_status_label = tk.Label(wallet_frame, text="[ AUTHENTICATION REQUIRED ]", 
+                                           fg='#ff0040', bg='#000000', font=('Courier New', 9, 'bold'))
+        self.wallet_status_label.pack(side=tk.LEFT, padx=(0, 12))
+        
+        self.login_button = self.create_matrix_button(wallet_frame, "[ ENTER MATRIX ]", self.show_wallet_login)
+        self.login_button.pack(side=tk.LEFT, padx=(0, 8))
+        
+        self.logout_button = self.create_matrix_button(wallet_frame, "[ EXIT ]", self.wallet_logout)
+        self.logout_button.pack(side=tk.LEFT)
+        self.logout_button.pack_forget()  # Initially hidden
+
+        # ========== QUICK STATS CARDS ==========
+        self.setup_quick_stats(main_frame)
+
+        # ========== MAIN CONTENT TABS ==========
+        content_frame = tk.Frame(main_frame, bg='#000000')
+        content_frame.pack(fill=tk.BOTH, expand=True, pady=(20, 0))
         
         # Notebook for tabs
-        self.notebook = ttk.Notebook(main_frame)
-        self.notebook.pack(fill=tk.BOTH, expand=True, pady=10)
+        self.notebook = ttk.Notebook(content_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True)
         
         # Create tabs
         self.create_overview_tab()
         self.create_mining_tab()
         self.create_blockchain_tab()
         self.create_settings_tab()
-        
-        # Status bar
-        self.setup_status_bar(main_frame)
+
+        # ========== STATUS BAR ==========
+        self.status_bar = tk.Label(main_frame, text="🚀 ZION SSH Dashboard Ready", 
+                                  relief=tk.SUNKEN, anchor=tk.W,
+                                  bg='#001100', fg='#00ff41', font=('Courier New', 9))
+        self.status_bar.pack(fill=tk.X, pady=(10, 0))
     
-    def setup_header(self, parent):
-        """Setup header with connection status"""
-        header = tk.Frame(parent, bg='#001100')
-        header.pack(fill=tk.X, pady=(0, 10))
+    def setup_quick_stats(self, parent):
+        """Setup Matrix-style stats cards with rounded corners"""
+        stats_frame = tk.Frame(parent, bg='#000000')
+        stats_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        # Create 4 stats cards
+        self.create_stats_card(stats_frame, ">", "SSH STATUS", "⚫ CHECKING...", 0)
+        self.create_stats_card(stats_frame, ">", "BLOCK HEIGHT", "0", 1)
+        self.create_stats_card(stats_frame, ">", "HASHRATE", "0.000 H/s", 2)
+        self.create_stats_card(stats_frame, ">", "ZION BALANCE", "0.00000000", 3)
+
+    def create_stats_card(self, parent, icon, title, value, column):
+        """Create a beautiful Matrix stats card with rounded neon panel"""
+        width, height = 280, 120
+        parent.grid_columnconfigure(column, weight=1)
+        
+        # Generate rounded neon panel
+        panel_image = self._gen_neon_panel(width, height, radius=22)
+        container = tk.Label(parent, image=panel_image, bg='#000000')
+        container.image = panel_image
+        container.grid(row=0, column=column, padx=12, pady=10)
+
+        # Inner content frame
+        inner = tk.Frame(container, bg='#001100')
+        inner.place(relx=0.5, rely=0.5, anchor='center')
+        
+        # Icon
+        icon_label = tk.Label(inner, text=icon, font=('Courier New', 20, 'bold'), 
+                             bg='#001100', fg='#00ff41')
+        icon_label.pack(pady=(12, 8))
         
         # Title
-        title = tk.Label(
-            header,
-            text="🚀 ZION 2.7.5 SSH DASHBOARD",
-            font=('Courier', 24, 'bold'),
-            fg='#00ff41',
-            bg='#001100'
-        )
-        title.pack(side=tk.LEFT)
+        title_label = tk.Label(inner, text=title, font=('Courier New', 9, 'bold'),
+                              bg='#001100', fg='#00dd00')
+        title_label.pack()
         
-        # SSH Status
-        self.ssh_status_label = tk.Label(
-            header,
-            text="⚠️ Not Connected",
-            font=('Courier', 12),
-            fg='#ff4444',
-            bg='#001100'
-        )
-        self.ssh_status_label.pack(side=tk.RIGHT, padx=20)
+        # Value
+        value_label = tk.Label(inner, text=value, font=('Courier New', 14, 'bold'),
+                              bg='#001100', fg='#00ff41')
+        value_label.pack(pady=(5, 12))
         
-        # Connect button
-        self.connect_btn = tk.Button(
-            header,
-            text="🔗 Connect SSH",
-            command=self.connect_ssh,
-            font=('Courier', 10),
-            bg='#003300',
-            fg='#00ff41',
-            activebackground='#004400'
-        )
-        self.connect_btn.pack(side=tk.RIGHT, padx=5)
+        # Store reference for updates
+        if title == "SSH STATUS":
+            self.ssh_status_value = value_label
+        elif title == "BLOCK HEIGHT":
+            self.block_height_value = value_label
+        elif title == "HASHRATE":
+            self.hashrate_value = value_label
+        elif title == "ZION BALANCE":
+            self.balance_value = value_label
+    
+    # ========== WALLET LOGIN DIALOG ==========
+    def show_wallet_login(self):
+        """Show beautiful Matrix wallet login dialog"""
+        login_window = tk.Toplevel(self.root)
+        login_window.title("🔐 ZION Matrix Wallet Login")
+        login_window.geometry("450x350")
+        login_window.configure(bg='#000000')
+        login_window.resizable(False, False)
+        
+        # Center window
+        login_window.transient(self.root)
+        login_window.grab_set()
+        
+        # Header with Matrix style
+        header_frame = tk.Frame(login_window, bg='#000000')
+        header_frame.pack(fill=tk.X, pady=20, padx=20)
+        
+        tk.Label(header_frame, text="🔐 ENTER THE MATRIX", 
+                font=('Courier New', 18, 'bold'), fg='#00ff41', bg='#000000').pack()
+        
+        tk.Label(header_frame, text="> Follow the white rabbit...", 
+                font=('Courier New', 10, 'italic'), fg='#00aa00', bg='#000000').pack(pady=(5, 0))
+        
+        # Form with rounded panel
+        form_frame = tk.Frame(login_window, bg='#000000')
+        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        # Wallet Address
+        tk.Label(form_frame, text="WALLET ADDRESS:", font=('Courier New', 10, 'bold'),
+                bg='#000000', fg='#00dd00').pack(anchor=tk.W, pady=(0, 5))
+        address_entry = tk.Entry(form_frame, width=50, font=('Courier New', 10), 
+                                bg='#001100', fg='#00ff41', insertbackground='#00ff41',
+                                relief=tk.FLAT, bd=5)
+        address_entry.pack(fill=tk.X, pady=(0, 15))
+        address_entry.focus()
+        
+        # Optional Password
+        tk.Label(form_frame, text="PASSWORD (Optional):", font=('Courier New', 10, 'bold'),
+                bg='#000000', fg='#00dd00').pack(anchor=tk.W, pady=(0, 5))
+        token_entry = tk.Entry(form_frame, width=50, font=('Courier New', 10),
+                              bg='#001100', fg='#00ff41', insertbackground='#00ff41',
+                              relief=tk.FLAT, bd=5, show='*')
+        token_entry.pack(fill=tk.X, pady=(0, 15))
+        
+        # Status
+        status_label = tk.Label(form_frame, text="", font=('Courier New', 9),
+                               bg='#000000', fg='#ffaa00')
+        status_label.pack(pady=(0, 10))
+        
+        # Buttons
+        button_frame = tk.Frame(form_frame, bg='#000000')
+        button_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        def attempt_login():
+            address = address_entry.get().strip()
+            token = token_entry.get().strip()
+            if not address:
+                status_label.config(text="⚠️ Address required!", fg='#ff3366')
+                return
+            
+            status_label.config(text="⏳ Authenticating...", fg='#ffaa00')
+            login_window.update()
+            
+            success, balance = self.validate_wallet_login(address, token)
+            if success:
+                self.wallet_session = {
+                    'logged_in': True,
+                    'address': address,
+                    'balance': balance,
+                    'login_time': datetime.now()
+                }
+                self.update_wallet_ui()
+                login_window.destroy()
+                messagebox.showinfo("Success", f"✅ Welcome to the Matrix!\n\nWallet: {address[:20]}...")
+            else:
+                status_label.config(text="❌ Authentication failed!", fg='#ff3366')
+        
+        def cancel_login():
+            login_window.destroy()
+        
+        self.create_matrix_button(button_frame, "[ LOGIN ]", attempt_login).pack(side=tk.LEFT, padx=(0, 10))
+        self.create_matrix_button(button_frame, "[ CANCEL ]", cancel_login).pack(side=tk.LEFT)
+        
+        # Demo hint
+        demo_frame = tk.Frame(form_frame, bg='#000000')
+        demo_frame.pack(fill=tk.X, pady=(20, 0))
+        tk.Label(demo_frame, text="� Demo: Zion1MainNetWallet123456789", 
+                font=('Courier New', 8), fg='#008800', bg='#000000').pack()
+
+    def validate_wallet_login(self, address, token=""):
+        """Validate wallet and fetch balance"""
+        try:
+            # Try SSH blockchain query first
+            if self.ssh.connected:
+                cmd = f'cd /root/zion && python3 -c "import sys; sys.path.insert(0, \\"/root/zion\\"); from zion_unified import get_balance; print(get_balance(\\"{address}\\"))" 2>/dev/null || echo "0.0"'
+                stdout, stderr, error = self.ssh.execute_command(cmd)
+                if stdout:
+                    balance = float(stdout.strip())
+                    return (True, balance)
+            
+            # Fallback: accept any address for demo
+            return (True, 0.0)
+            
+        except Exception as e:
+            print(f"Wallet validation error: {e}")
+            return (False, 0.0)
+
+    def update_wallet_ui(self):
+        """Update UI after wallet login/logout"""
+        if self.wallet_session['logged_in']:
+            addr = self.wallet_session['address']
+            balance = self.wallet_session['balance']
+            self.wallet_status_label.config(
+                text=f"[ {addr[:10]}...{addr[-6:]} ]",
+                fg='#00ff41'
+            )
+            self.balance_value.config(text=f"{balance:.8f}")
+            self.login_button.pack_forget()
+            self.logout_button.pack(side=tk.LEFT)
+        else:
+            self.wallet_status_label.config(
+                text="[ AUTHENTICATION REQUIRED ]",
+                fg='#ff0040'
+            )
+            self.balance_value.config(text="0.00000000")
+            self.logout_button.pack_forget()
+            self.login_button.pack(side=tk.LEFT, padx=(0, 8))
+
+    def wallet_logout(self):
+        """Logout from wallet"""
+        self.wallet_session = {
+            'logged_in': False,
+            'address': '',
+            'balance': 0.0,
+            'login_time': None
+        }
+        self.update_wallet_ui()
+        messagebox.showinfo("Logout", "👋 You have exited the Matrix")
+
     
     def create_overview_tab(self):
         """Overview tab with key metrics"""
@@ -639,6 +972,45 @@ class ZIONSSHDashboard:
             self.update_status("SSH settings saved")
         except Exception as e:
             messagebox.showerror("Error", f"Failed to save settings: {e}")
+    
+    # ========== CONTROL METHODS ==========
+    def manual_refresh(self):
+        """Manual refresh of all stats"""
+        self.update_status("🔄 Refreshing...")
+        threading.Thread(target=self._refresh_all, daemon=True).start()
+    
+    def _refresh_all(self):
+        """Background refresh task"""
+        try:
+            self.update_blockchain_stats()
+            self.update_pool_stats()
+            self.update_mining_stats()
+            self.root.after(0, lambda: self.update_status("✅ Refresh complete"))
+        except Exception as e:
+            self.root.after(0, lambda: self.update_status(f"❌ Refresh error: {e}"))
+    
+    def check_ssh_connection(self):
+        """Check and display SSH connection status"""
+        if self.ssh.connected:
+            info = f"""
+✅ SSH CONNECTION ACTIVE
+
+Server: {SSH_CONFIG['host']}:{SSH_CONFIG['port']}
+User: {SSH_CONFIG['username']}
+Status: Connected
+            """
+            messagebox.showinfo("SSH Status", info.strip())
+        else:
+            info = f"""
+⚠️ SSH NOT CONNECTED
+
+Server: {SSH_CONFIG['host']}:{SSH_CONFIG['port']}
+Last Error: {self.ssh.last_error or 'Not attempted'}
+
+Click OK to try connecting...
+            """
+            if messagebox.askokcancel("SSH Status", info.strip()):
+                self.connect_ssh()
     
     def start_mining(self):
         """Start Yescrypt mining"""
