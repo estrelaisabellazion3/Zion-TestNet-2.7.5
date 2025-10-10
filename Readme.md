@@ -4,12 +4,16 @@
 ![License](https://img.shields.io/badge/License-MIT-blue)
 ![Status](https://img## � **Klíčová Dokumentace / Key Documentation**
 
+- **[🌌 ZION Quantum Space Roadmap](ZION-QUANTUM-SP### 📚 **Klíčová Dokumentace / Key Documentation**
+
+- **[🚀 ZION Mainnet Launch Strategy](ZION-MAINNET-LAUNCH-STRATEGY.md)** - Complete mainnet deployment roadmap
+- **[🌟 ZION Mainnet Realization Analysis 2026](ZION-MAINNET-REALIZATION-ANALYSIS-2026.md)** - Deep project analysis and detailed mainnet launch procedure to April 8, 2026
 - **[🌌 ZION Quantum Space Roadmap](ZION-QUANTUM-SPACE-ROADMAP.md)** - Interstellar-inspired 35-year cosmic development plan
-- **[�🚀 ZION Mainnet Launch Strategy](ZION-MAINNET-LAUNCH-STRATEGY.md)** - Complete mainnet deployment roadmap
-- **[📊 ZION vs Bitcoin Analysis v1.2](ZION-BTC-Deep-Analysis_v1.2.md)** - Economic model & tokenomics
+- **[ ZION vs Bitcoin Analysis v1.2](ZION-BTC-Deep-Analysis_v1.2.md)** - Economic model & tokenomics
 - **[⚙️ Consensus Parameters](docs/CONSENSUS_PARAMS.md)** - Unified blockchain parameters
 - **[🔧 Technical Quick Start](TECHNICAL_QUICK_START.md)** - Developer onboarding guide
-- **[📋 Release Notes v2.7.2](RELEASE_NOTES_v2.7.2_MATRIX_UI.md)** - Matrix UI overhaul documentations.io/badge/Status-Mainnet%20Ready-brightgreen)
+- **[📋 Release Notes v2.7.2](RELEASE_NOTES_v2.7.2_MATRIX_UI.md)** - Matrix UI overhaul documentation
+- **[🖥️ SSH Dashboard Guide](ZION_SSH_DASHBOARD_GUIDE.md)** - Optimized remote monitoring dashboard with Yescrypt mining
 ![Version](https://img.shields.io/badge/Version-2.7.5-blue)
 
 ## 🚀 Mainnet Launch Ready
