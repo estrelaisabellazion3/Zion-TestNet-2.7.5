@@ -754,19 +754,34 @@ class ZionUniversalPool:
     def check_block_found(self) -> bool:
         """
         Check if a block has been found and submit it to the real blockchain
+        Uses DATABASE count for reliability across restarts
         """
         if not self.pool_blocks:
+            logger.warning("❌ check_block_found: NO pool_blocks!")
             return False
 
         current_block = self.pool_blocks[-1]
         if current_block.status != "pending":
+            logger.warning(f"❌ check_block_found: Block status is {current_block.status}, not pending")
             return False
 
         # Real block finding: mine pending transactions when enough shares accumulated
         # This replaces the mock simulation with actual blockchain mining
         block_threshold = 1000  # Shares needed to trigger block mining
+        
+        # READ FROM DATABASE instead of in-memory counter (survives restarts!)
+        try:
+            with sqlite3.connect(self.db.db_file) as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM shares WHERE is_valid=1")
+                total_shares_in_db = cursor.fetchone()[0]
+        except Exception as e:
+            logger.error(f"Failed to read shares from DB: {e}")
+            total_shares_in_db = current_block.total_shares  # Fallback to in-memory
+        
+        logger.info(f"🔍 check_block_found: DB_shares={total_shares_in_db}, memory_shares={current_block.total_shares}, threshold={block_threshold}")
 
-        if current_block.total_shares >= block_threshold:
+        if total_shares_in_db >= block_threshold:
             try:
                 # Mine the block on the real blockchain
                 block_hash = self.blockchain.mine_pending_transactions(self.pool_wallet_address)

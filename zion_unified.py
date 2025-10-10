@@ -143,6 +143,52 @@ class ZionUnifiedSystem:
                 if hasattr(self.real_bc, 'mine_block'):
                     return self.real_bc.mine_block(miner_address=miner_address, **kwargs)
                 return None
+            
+            def mine_pending_transactions(self, miner_address):
+                """Mine pending transactions - wrapper for pool compatibility"""
+                if hasattr(self.real_bc, 'mine_block'):
+                    try:
+                        result = self.real_bc.mine_block(miner_address=miner_address)
+                        # RealBlock object has .hash attribute
+                        if result and hasattr(result, 'hash'):
+                            return result.hash
+                        # Fallback: if it's a dict
+                        elif result and isinstance(result, dict):
+                            return result.get('hash')
+                        return None
+                    except Exception as e:
+                        import logging
+                        logging.error(f"BlockchainBridge mine error: {e}")
+                        return None
+                return None
+            
+            def create_transaction(self, from_address, to_address, amount, message='', **kwargs):
+                """Create a transaction - wrapper for pool rewards"""
+                if hasattr(self.real_bc, 'create_transaction'):
+                    return self.real_bc.create_transaction(from_address, to_address, amount, message, **kwargs)
+                elif hasattr(self.real_bc, 'add_transaction_to_mempool'):
+                    # Create transaction object for mempool
+                    import time
+                    import hashlib
+                    from core.real_blockchain import RealTransaction
+                    
+                    tx = RealTransaction(
+                        tx_id='',
+                        from_address=from_address,
+                        to_address=to_address,
+                        amount=int(amount * 1e8),  # Convert to atomic units
+                        fee=kwargs.get('fee', 100),
+                        timestamp=int(time.time()),
+                        signature=message  # Use message as signature placeholder
+                    )
+                    tx.tx_id = tx.calculate_tx_id()
+                    
+                    # Add to mempool
+                    success = self.real_bc.add_transaction_to_mempool(tx)
+                    if success:
+                        print(f"✅ Added reward transaction to mempool: {amount:.8f} ZION to {to_address}")
+                    return success
+                return None
         
         return BlockchainBridge(self.blockchain)
     

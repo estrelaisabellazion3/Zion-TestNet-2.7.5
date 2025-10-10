@@ -10,10 +10,21 @@ import time
 import hashlib
 import sqlite3
 import threading
+import sys
+import os
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import heapq
+
+# Import RandomX engine from v2.7
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'zion', 'mining'))
+try:
+    from randomx_engine import RandomXEngine
+    RANDOMX_AVAILABLE = True
+except ImportError:
+    print("⚠️ RandomX engine not available, using SHA256 fallback")
+    RANDOMX_AVAILABLE = False
 
 @dataclass
 class RealBlock:
@@ -147,9 +158,26 @@ class ZionRealBlockchain:
         self.db_file = db_file
         self.blocks: List[RealBlock] = []
         self.mempool = TransactionMempool()
-        self.difficulty = 1000
-        self.block_reward = 5479452054  # 5,479.45 ZION in atomic units (144B ZION / 50 years)
+        self.difficulty = 1500  # Production difficulty for 60-second block time (was 50 - TOO LOW!)
+        self.block_reward = 5479452055  # 5,479.45 ZION in atomic units (144B ZION / 50 years)
         self._lock = threading.Lock()
+        self.target_block_time = 60  # Target: 1 block per minute
+        self.difficulty_adjustment_interval = 100  # Adjust difficulty every 100 blocks
+        
+        # RandomX engine initialization
+        self.randomx_engine = None
+        if RANDOMX_AVAILABLE:
+            try:
+                self.randomx_engine = RandomXEngine(fallback_to_sha256=True)
+                seed_key = b"ZION_BLOCKCHAIN_SEED_2.7.1"
+                if self.randomx_engine.init(seed_key, use_large_pages=False, full_mem=False):
+                    print("✅ RandomX engine initialized successfully")
+                else:
+                    print("⚠️ RandomX init failed, using SHA256 fallback")
+                    self.randomx_engine = None
+            except Exception as e:
+                print(f"⚠️ RandomX initialization error: {e}")
+                self.randomx_engine = None
         
         # Mining algorithm settings
         self.mining_algorithm = 'argon2'  # Default ASIC-resistant
@@ -180,13 +208,38 @@ class ZionRealBlockchain:
         else:
             print("🖥️ CPU mining enabled")
         
-        # Adjust difficulty based on algorithm
-        if algorithm == 'argon2':
-            self.difficulty = 1000  # ASIC-resistant
-        elif algorithm in ['kawpow', 'ethash']:
-            self.difficulty = 10000  # GPU-optimized
+        # Note: Difficulty is now managed by adaptive difficulty adjustment
+        # Initial difficulty is set in __init__ to 1500 for production
+    
+    def adjust_difficulty(self):
+        """Adjust difficulty based on actual block times to maintain 60-second target"""
+        if len(self.blocks) < self.difficulty_adjustment_interval:
+            return
+        
+        # Calculate average block time for last N blocks
+        recent_blocks = self.blocks[-self.difficulty_adjustment_interval:]
+        time_diffs = []
+        for i in range(1, len(recent_blocks)):
+            time_diff = recent_blocks[i].timestamp - recent_blocks[i-1].timestamp
+            time_diffs.append(time_diff)
+        
+        if not time_diffs:
+            return
+        
+        avg_block_time = sum(time_diffs) / len(time_diffs)
+        
+        # Adjust difficulty to target 60 seconds
+        if avg_block_time < self.target_block_time * 0.8:  # Too fast (< 48s)
+            new_difficulty = int(self.difficulty * (self.target_block_time / avg_block_time))
+            print(f"⬆️  Increasing difficulty: {self.difficulty} → {new_difficulty} (avg block time: {avg_block_time:.1f}s)")
+            self.difficulty = new_difficulty
+        elif avg_block_time > self.target_block_time * 1.2:  # Too slow (> 72s)
+            new_difficulty = int(self.difficulty * (self.target_block_time / avg_block_time))
+            print(f"⬇️  Decreasing difficulty: {self.difficulty} → {new_difficulty} (avg block time: {avg_block_time:.1f}s)")
+            self.difficulty = new_difficulty
         else:
-            self.difficulty = 5000  # Balanced
+            print(f"✅ Difficulty stable at {self.difficulty} (avg block time: {avg_block_time:.1f}s)")
+    
     
     def _init_database(self):
         """Initialize blockchain database"""
@@ -320,63 +373,23 @@ class ZionRealBlockchain:
         return hash_result.hex()
     
     def _create_genesis_block(self):
-        """Create genesis block with pre-mine addresses"""
-        # Genesis reward distribution
-        genesis_transactions = [
-            # NETWORK ADMINISTRATOR - Maitreya Buddha pro mainnet upgrade
-            {
-                'type': 'network_admin',
-                'amount': 1000000000000000,  # 1 billion ZION in atomic units
-                'to_address': 'MAITREYA_BUDDHA_NETWORK_ADMINISTRATOR_2025'
-            },
-            {
-                'type': 'genesis',
-                'amount': 342857142857,  # 342.857M ZION - Genesis reward
-                'to_address': 'Z359Sdk6srUZvpAz653xcwsPMFUeew3f6Johmw5apsvMH4uaGY3864q24n9EfiWMUjaGihT7wzkXAr75HiPCbnaQq6'
-            },
-            # Pre-mine addresses with 2 billion ZION each (Mining operators)
-            {
-                'type': 'premine',
-                'amount': 2000000000000000,  # 2 billion ZION in atomic units
-                'to_address': 'ZIONSacredMiner123456789012345678901234567890'
-            },
-            {
-                'type': 'premine',
-                'amount': 2000000000000000,  # 2 billion ZION in atomic units
-                'to_address': 'ZIONQuantumMiner12345678901234567890123456789'
-            },
-            {
-                'type': 'premine',
-                'amount': 2000000000000000,  # 2 billion ZION in atomic units
-                'to_address': 'ZIONCosmicMiner123456789012345678901234567890'
-            },
-            {
-                'type': 'premine',
-                'amount': 2000000000000000,  # 2 billion ZION in atomic units
-                'to_address': 'ZIONEnlightenedMiner1234567890123456789012345'
-            },
-            {
-                'type': 'premine',
-                'amount': 2000000000000000,  # 2 billion ZION in atomic units
-                'to_address': 'ZIONTranscendentMiner123456789012345678901234'
-            },
-            # Special purpose addresses with 1 billion ZION each
-            {
-                'type': 'dev_fund',
-                'amount': 1000000000000000,  # 1 billion ZION in atomic units
-                'to_address': 'ZION_DEV_TEAM_FUND_2025_DEVELOPMENT_ADDRESS'
-            },
-            {
-                'type': 'network_fund',
-                'amount': 1000000000000000,  # 1 billion ZION in atomic units
-                'to_address': 'ZION_NETWORK_SITA_FUND_2025_INFRASTRUCTURE'
-            },
-            {
-                'type': 'children_fund',
-                'amount': 1000000000000000,  # 1 billion ZION in atomic units
-                'to_address': 'ZION_CHILDREN_FUND_2025_FUTURE_GENERATION'
-            }
-        ]
+        """Create genesis block with pre-mine addresses from seednodes.py"""
+        # Import premine addresses from seednodes
+        from seednodes import ZION_PREMINE_ADDRESSES
+        
+        # Genesis reward distribution using CORRECT addresses from seednodes.py
+        genesis_transactions = []
+        
+        # Add all premine addresses from seednodes.py
+        for address, info in ZION_PREMINE_ADDRESSES.items():
+            genesis_transactions.append({
+                'type': info.get('type', 'premine'),
+                'amount': info['amount'] * 1000000,  # Convert to atomic units (×1e6 not ×1e12 - ZION has 6 decimals)
+                'to_address': address,
+                'purpose': info['purpose']
+            })
+        
+        print(f"✨ Creating genesis block with {len(genesis_transactions)} premine addresses from seednodes.py")
         
         # Calculate total pre-mine supply
         total_premine = sum(tx['amount'] for tx in genesis_transactions)
@@ -404,14 +417,13 @@ class ZionRealBlockchain:
         # Save to database
         self._save_block_to_db(genesis_block)
         
-        print("✨ Genesis block created with pre-mine addresses")
+        print("✨ Genesis block created with CORRECT pre-mine addresses from seednodes.py")
         print(f"   Hash: {genesis_block.hash}")
-        print(f"   🔑 MAITREYA BUDDHA: 1,000,000,000,000,000 atomic units (1B ZION)")
-        print(f"   ✨ Genesis reward: 342,857,142,857 atomic units (342.857M ZION)")
-        print(f"   ⚡ Mining operators: 5 addresses × 2,000,000,000,000,000 atomic units each (2B ZION)")
-        print(f"   👨‍💻 DEV TEAM fund: 1,000,000,000,000,000 atomic units (1B ZION)")
-        print(f"   🌐 SITA network fund: 1,000,000,000,000,000 atomic units (1B ZION)") 
-        print(f"   👶 CHILDREN fund: 1,000,000,000,000,000 atomic units (1B ZION)")
+        print(f"   Total premine: {total_premine:,} atomic units ({total_premine/1e6:,.2f} ZION)")
+        print(f"   Addresses: {len(genesis_transactions)}")
+        for tx in genesis_transactions:
+            addr_short = tx['to_address'][:50] + '...' if len(tx['to_address']) > 50 else tx['to_address']
+            print(f"   ✅ {addr_short:52} → {tx['amount']/1e6:>12,.0f} ZION ({tx.get('purpose', 'N/A')})")
         print(f"   📊 Total pre-mine supply: {total_premine} atomic units ({total_premine / 1_000_000:,.0f} ZION)")
     
     def add_transaction(self, tx: RealTransaction) -> bool:
@@ -487,15 +499,21 @@ class ZionRealBlockchain:
             while True:
                 new_block.nonce += 1
                 
-                # Use selected mining algorithm
-                if self.mining_algorithm == 'argon2':
-                    new_block.hash = self._calculate_argon2_hash(new_block)
-                elif self.mining_algorithm == 'kawpow':
-                    new_block.hash = self._calculate_kawpow_hash(new_block)
-                elif self.mining_algorithm == 'ethash':
-                    new_block.hash = self._calculate_ethash_hash(new_block)
+                # Use RandomX for hash calculation (same as pool validation)
+                if self.randomx_engine and RANDOMX_AVAILABLE:
+                    # Create block data for RandomX hashing
+                    block_data = json.dumps({
+                        'height': new_block.height,
+                        'previous_hash': new_block.previous_hash,
+                        'timestamp': new_block.timestamp,
+                        'nonce': new_block.nonce,
+                        'miner_address': new_block.miner_address
+                    }, sort_keys=True).encode()
+                    
+                    # RandomX hash
+                    new_block.hash = self.randomx_engine.hash(block_data).hex()
                 else:
-                    # Fallback to standard hash
+                    # Fallback to SHA256 if RandomX not available
                     new_block.hash = new_block.calculate_hash()
                 
                 # Check if hash meets difficulty
@@ -503,7 +521,7 @@ class ZionRealBlockchain:
                     break
                 
                 # Prevent infinite mining in production
-                if time.time() - start_time > 30:  # 30 second timeout
+                if time.time() - start_time > 120:  # 120 second timeout (was 30)
                     print(f"⚠️  Mining timeout for block {new_block.height}")
                     return None
             
@@ -520,6 +538,10 @@ class ZionRealBlockchain:
             # Update transaction records with block height
             for tx in transactions:
                 self._update_transaction_block(tx.tx_id, new_block.height)
+            
+            # Adjust difficulty every N blocks to maintain target block time
+            if new_block.height % self.difficulty_adjustment_interval == 0 and new_block.height > 0:
+                self.adjust_difficulty()
             
             mining_time = time.time() - start_time
             print(f"⛏️  Block {new_block.height} mined!")

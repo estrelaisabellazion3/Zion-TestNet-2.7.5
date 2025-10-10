@@ -171,26 +171,59 @@ class ZionAIYesscriptMiner:
             return 500.0
 
     def _mining_simulation(self):
-        """Real Yescrypt mining process monitoring (NO SIMULATIONS)"""
-        logger.info("Starting REAL Yescrypt mining monitoring...")
-
-        while self.is_mining and not self.stop_monitoring:
-            try:
-                # Simuluj mining aktivitu
+        """REAL Yescrypt mining using subprocess to real_mining_no_sim.py"""
+        logger.info("Starting REAL Yescrypt mining via subprocess...")
+        
+        # Find real_mining_no_sim.py path
+        script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        real_miner_path = os.path.join(script_dir, 'real_mining_no_sim.py')
+        
+        if not os.path.exists(real_miner_path):
+            logger.error(f"Real miner not found at {real_miner_path}, falling back to simulation")
+            # Fallback to simple simulation
+            while self.is_mining and not self.stop_monitoring:
                 time.sleep(1)
-
-                # Aktualizuj statistiky
                 self._update_mining_stats()
-
-                # AI optimalizace každých 30 sekund
-                if int(time.time()) % 30 == 0:
-                    self._ai_optimization()
-
-            except Exception as e:
-                logger.error(f"Mining simulation error: {e}")
-                break
-
-        logger.info("Yescrypt mining simulation stopped")
+            return
+        
+        try:
+            # Start real mining subprocess
+            logger.info(f"🚀 Launching real miner: {real_miner_path}")
+            self.mining_process = subprocess.Popen(
+                [sys.executable, real_miner_path],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1
+            )
+            
+            # Monitor output
+            for line in self.mining_process.stdout:
+                if not self.is_mining or self.stop_monitoring:
+                    break
+                    
+                # Log mining output
+                if '🎉' in line or 'Share' in line or 'LOGIN' in line:
+                    logger.info(f"[REAL_MINER] {line.strip()}")
+                
+                # Update stats periodically
+                if int(time.time()) % 10 == 0:
+                    self._update_mining_stats()
+                    
+                    # AI optimization every 30 seconds
+                    if int(time.time()) % 30 == 0:
+                        self._ai_optimization()
+            
+            # Wait for process to finish
+            self.mining_process.wait()
+            logger.info("Real miner process finished")
+            
+        except Exception as e:
+            logger.error(f"Real mining error: {e}")
+            if self.mining_process:
+                self.mining_process.terminate()
+        
+        logger.info("Yescrypt mining stopped")
 
     def _ai_monitoring_loop(self):
         """AI monitoring loop pro optimalizaci výkonu"""
