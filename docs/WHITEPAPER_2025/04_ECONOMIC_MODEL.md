@@ -196,21 +196,21 @@ Network Infrastructure - SITA (1B ZION):
   Named After: Sita (Ramayana - symbol of resilience)
 
 Children Future Fund (1B ZION):
-  Address: ZION_CHILDREN_FUTURE_FUND_HUMANITARIAN
+  Address: ZION_CHILDREN_FUTURE_FUND_1ECCB72BC30AADD086656A59
   Purpose:
     - Education programs (schools, scholarships)
     - Healthcare (pediatric clinics, vaccines)
-    - Food security (school meals, nutrition)
+    - Food security (school meals, clean water)
     - Environmental (clean water, reforestation)
   Transparency: Quarterly reports, blockchain-tracked spending
+  
+  📄 **Detailed documentation:** [Humanitarian Tithe System](../../HUMANITARIAN_TITHE/README.md)
+  - Project Humanita (60%): Children & human welfare
+  - Project Hanuman (40%): Environmental restoration
+  - Full versioning history (2.7.1, 2.7.2, 2.7.3)
+  - DAO governance & impact metrics
 
 Maitreya Buddha Admin (1B ZION):
-  Address: ZION_MAITREYA_BUDDHA_DAO_ADMIN_D7A371ABD1FF1C5D42AB02
-  Purpose:
-    - DAO governance (voting control 2025-2045)
-    - Emergency protocol updates
-    - Network bootstrapping
-  Transition: 100% → 70% → 50% → 25% → 0% over 20 years
 
 Genesis Community Rent (342.857M ZION):
   Address: ZION_GENESIS_CREATOR_COMMUNITY_RENT_YESHUAE
@@ -290,32 +290,48 @@ Cumulative Supply:
 ### Pool Fees (Mining Rewards)
 
 ```yaml
-Humanitarian Tithe:
-  Year 2025: 10%
-  Year 2026: 12%
-  Year 2027: 15%
-  Year 2028: 18%
-  Year 2029: 20%
-  Year 2030+: 25% (ultimate target)
+Humanitarian Tithe (Desátek):
+  Year 2025: 10%  → Project Humanita (60%) + Project Hanuman (40%)
+  Year 2026: 12%  → Gradual increase to Golden Age commitment
+  Year 2027: 15%  → Community-approved scaling
+  Year 2028: 18%  → Approaching mature ecosystem
+  Year 2029: 20%  → Double initial commitment
+  Year 2030+: 25% → Ultimate target (Golden Age achieved)
   
-  Purpose:
-    - Children Future Fund
-    - Environmental projects
-    - Educational programs
-    - Healthcare initiatives
+  Project Humanita (60% of tithe):
+    - Children education (35%)
+    - Healthcare (30%)
+    - Food security (20%)
+    - Technology access (15%)
+  
+  Project Hanuman (40% of tithe):
+    - Reforestation (40%) - Named after Síta's partner
+    - Ocean cleanup (30%)
+    - Wildlife protection (20%)
+    - Renewable energy (10%)
+    - Includes "Hanuman's Rent" (environmental guardian honor)
 
 Development Fee: 1%
   Purpose: Core team, infrastructure, audits
 
 Genesis Creator Fee: 0.33%
   Purpose: Original creator acknowledgment (Yeshuae Amon Ra)
+  Note: Lifetime rent honoring innovation
 
 Pool Admin Fee: 1%
   Purpose: Pool operations, servers, bandwidth
 
 TOTAL FEES: 12.33% - 27.33% (depends on year)
 MINER SHARE: 87.67% - 72.67%
+Note: Consciousness bonuses (+0-150%) offset fees for dharma miners!
 ```
+
+📘 **Comprehensive Documentation:**  
+For complete details on Humanitarian Tithe, Project Humanita, Project Hanuman, Hanuman's Rent, version history (2.7.1 → 2.7.2 → 2.7.3), pool mechanisms, DAO governance, and impact metrics, see:
+
+👉 **[HUMANITARIAN TITHE DOCUMENTATION](../../HUMANITARIAN_TITHE/README.md)** (7-page detailed guide)
+
+
 
 **Example calculation (2025):**
 ```
