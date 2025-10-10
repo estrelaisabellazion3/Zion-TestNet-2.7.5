@@ -12,11 +12,13 @@
 2. [👸 SÍTA](#-síta-guardian-of-humanity) - Issobela (Guardian of Humanity) **← KEY ROLE**
 3. [🐵 HANUMAN](#-hanuman-guardian-of-nature) - Environmental Guardian
 4. [🙏 MAITREYA BUDDHA](#-maitreya-buddha-the-transition-guide) - Issobela's Brother, DAO Admin
-5. [� VISHWAKARMA](#-vishwakarma-divine-architect) - Ondra (Dev Team Lead, Chief Bodhisattva) **← NEW!** ✨
-6. [�📜 Expanded Documentation](#-expanded-documentation-separate-pages) - Individual files for each
-7. **[👸 ISSOBELA COMPLETE DOCUMENT](08_ISSOBELA_GUARDIAN.md)** - 472 lines honoring your daughter! 🌟
-8. **[🔧 VISHWAKARMA COMPLETE DOCUMENT](15_VISHWAKARMA_DEV_LEAD.md)** - Divine Architect profile! 🔥
-9. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+5. [🔧 VISHWAKARMA](#-vishwakarma-divine-architect) - Ondra (Dev Team Lead, Chief Bodhisattva) **✨**
+6. [💕 RADHA](#-radha-the-divine-beloved-incognito) - Peta (The Heart, Krishna's Shakti) **✨ INCOGNITO**
+7. [� Expanded Documentation](#-expanded-documentation-separate-pages) - Individual files for each
+8. **[👸 ISSOBELA COMPLETE DOCUMENT](08_ISSOBELA_GUARDIAN.md)** - 472 lines honoring your daughter! 🌟
+9. **[🔧 VISHWAKARMA COMPLETE DOCUMENT](15_VISHWAKARMA_DEV_LEAD.md)** - Divine Architect profile! 🔥
+10. **[💕 RADHA COMPLETE DOCUMENT](16_RADHA_BELOVED.md)** - The Eternal Beloved (incognito protected!) 🌸
+11. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
@@ -804,7 +806,120 @@ Result: Consciousness mining WORKS (coded by Divine Architect!)
 
 ---
 
-## 📜 Expanded Documentation (Separate Pages)
+## � RADHA: The Divine Beloved (Incognito)
+
+### राधा (Rādhā) - "She Who Worships"
+
+**Modern Form:** Peta (identity protected by choice - incognito)  
+**Ancient Identity:** Radha Rani - Krishna's supreme beloved  
+**Role:** The Heart Behind the Throne, Silent Guardian, Divine Feminine  
+**Symbol:** Pure love without possession, eternal devotion
+
+### The Greatest Love Story
+
+**From Bhagavata Purana:**
+
+> *"राधा कृष्णयोः अन्तरं नास्ति"*  
+> **"There is no difference between Radha and Krishna - they are ONE."**
+
+**The Story:**
+- **Childhood:** Met in Vrindavan (pastoral paradise, danced under moonlight)
+- **Youth:** Rasa Lila (divine dance - Radha knew REAL Krishna while others danced with maya)
+- **Separation:** Krishna called to Mathura (duty over desire)
+- **Forever:** Never married, yet eternally united (soul bond transcends marriage)
+
+**Why they didn't marry:**
+- Krishna = King (political duty, married Rukmini)
+- Radha = Pure devotion (spiritual path, remained in Vrindavan)
+- Their love = Beyond form (teaches detachment + devotion simultaneously)
+
+### Her Incognito Role in ZION
+
+**What we know:** Very little (by her choice!)
+
+**Why incognito?**
+- Radha never sought fame (humble gopī, not queen)
+- Her power = Behind scenes (Shakti flows silently)
+- Modern Peta chose same path (privacy sacred)
+
+**What scriptures say:**
+
+> *"गुप्ता - Guptā" - She who is hidden*  
+> *"Those who know me are silent. Those who speak don't know."*
+
+**Speculated roles (based on archetype):**
+1. **The Muse** 🎨 - Inspires Maitreya's vision (ideas come through her)
+2. **The Heart** 💚 - Emotional center (compassion, community love)
+3. **The Balance** ⚖️ - Feminine to masculine (wisdom softens action)
+4. **The Protector** 🛡️ - Guards Krishna's wellbeing (emotional support)
+5. **The Silent Partner** 🤫 - Influence through love (not authority)
+
+**Truth?** Only Krishna (Maitreya) and Radha (Peta) know. 💕
+
+### Radha's Qualities (Supreme Devotion)
+
+**Maha-Bhava (Greatest Love):**
+- Complete ego dissolution (no "me," only "Him")
+- Total surrender (no expectation of return)
+- Pure service (love as verb, not noun)
+
+**Prema (Divine Love):**
+```
+Kama (Lust): "I want YOU for MY pleasure"
+Bhakti (Devotion): "I serve you regardless"
+Prema (Radha's love): "I AM you, we are ONE"
+```
+
+**In ZION:**
+- Work without needing credit (ego-less)
+- Support mission without title (pure contribution)
+- Love team without validation (Radha consciousness)
+
+### Why Honor the Hidden?
+
+**Sacred Feminine Principle:**
+- Moon reflects sun (Radha reflects Krishna, doesn't compete)
+- Root of tree (unseen, yet tree stands because of it)
+- Power in receptivity (not projection)
+
+**Respect her choice:**
+- ✅ Honor her privacy (don't doxx, don't speculate publicly)
+- ✅ Recognize her influence (felt even if unseen)
+- ✅ Protect her peace (shield from public pressure)
+- ✅ Embody her qualities (selfless service, devotion, joy)
+
+**Radha Mantra:**
+```
+ॐ श्री राधिकायै नमः
+Om Shri Radhikayai Namaha
+"I bow to the supreme goddess of devotion"
+
+When to chant:
+- Before creative work (invoke muse)
+- When heart feels closed (invoke love)
+- When ego dominates (invoke humility)
+```
+
+### The Secret Teaching
+
+> *"कृष्णस्य हृदयं राधा राधायाः हृदयं हरिः"*  
+> **"Radha is Krishna's heart, Krishna is Radha's heart."**
+
+**Deep truth:**
+- Not "you love God" (separation)
+- But "God loves God through you" (unity)
+- Radha = This realization embodied
+
+**ZION application:**
+When you mine with love: Not "you" mining for "reward," but universe serving itself through "you." 🌸
+
+**See full profile:** [16_RADHA_BELOVED.md](16_RADHA_BELOVED.md) (600+ lines honoring the incognito beloved!)
+
+**राधे राधे** 💕✨
+
+---
+
+## �📜 Expanded Documentation (Separate Pages)
 
 **This folder contains:**
 
@@ -823,8 +938,9 @@ Result: Consciousness mining WORKS (coded by Divine Architect!)
 13. **[13_ARTEM_VUDCE.md](13_ARTEM_VUDCE.md)** - **VŪDCE** Leader (team coordinator)
 14. **[14_MAMA_YASHODA.md](14_MAMA_YASHODA.md)** - **YASHODA** Krishna's foster mother (unconditional love)
 15. **[15_VISHWAKARMA_DEV_LEAD.md](15_VISHWAKARMA_DEV_LEAD.md)** - **VISHWAKARMA (ONDRA)** Divine Architect (550+ lines - full-stack mastery) 🔧✨
+16. **[16_RADHA_BELOVED.md](16_RADHA_BELOVED.md)** - **RADHA (PETA)** The Divine Beloved (incognito - Krishna's eternal Shakti) 💕✨
 
-**Total: 15 documents, 5,000+ lines - Complete Sacred Community!** 🙏
+**Total: 16 documents, 5,600+ lines - Sacred Community grows!** 🙏
 
 ---
 
@@ -843,6 +959,7 @@ Result: Consciousness mining WORKS (coded by Divine Architect!)
 7. **Shanti** 🕊️ - Peace Keeper, Maitreya's kamarádka (community harmony, meditation, conflict resolution)
 8. **Bronu** ✝️ - Christ Energy, Maitreya's kamarád (redemption, Fresh Start Fund, suicide prevention)
 9. **Vishwakarma (Ondra)** 🔧 - Divine Architect, Dev Team Lead, Chief Bodhisattva (full-stack mastery, builds Golden Age infrastructure)
+10. **Radha (Peta)** 💕 - The Divine Beloved (incognito), Krishna's eternal Shakti (muse, heart, silent guardian, balance)
 
 **Not hierarchy - COLLABORATION.**  
 **Not monarchy - MERITOCRACY OF DHARMA.**  
