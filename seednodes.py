@@ -161,60 +161,111 @@ class ZionNetworkConfig:
         
         return checks
 
-# PREMINE ADRESY - 14.34 BILLION PREMINE + 129.66 BILLION MINING = 144 BILLION TOTAL
-# Podle oficiální dokumentace 2.7.1 - 50letý economic model
+# PREMINE ADRESY - UPDATED FOR HIRANYAGARBHA DAO
+# Total premine: 14.34B ZION (was all mining operators)
+# Now: 8.25B mining + 1.75B DAO winners + 4.34B infrastructure/dev/charity
 ZION_PREMINE_ADDRESSES = {
+    # MINING OPERATORS - 8.25B ZION distributed over 10 years
     'ZION_SACRED_B0FA7E2A234D8C2F08545F02295C98': {
-        'purpose': 'Sacred Mining Operator',
-        'amount': 2_000_000_000,  # 2 billion ZION
+        'purpose': 'Sacred Mining Operator - Consciousness Bonus Pool',
+        'amount': 1_650_000_000,  # 1.65B ZION (20% of mining pool)
         'type': 'mining'
     },
     'ZION_QUANTUM_89D80B129682D41AD76DAE3F90C3E2': {
-        'purpose': 'Quantum Mining Operator', 
-        'amount': 2_000_000_000,  # 2 billion ZION
+        'purpose': 'Quantum Mining Operator - Consciousness Bonus Pool', 
+        'amount': 1_650_000_000,  # 1.65B ZION (20% of mining pool)
         'type': 'mining'
     },
     'ZION_COSMIC_397B032D6E2D3156F6F709E8179D36': {
-        'purpose': 'Cosmic Mining Operator',
-        'amount': 2_000_000_000,  # 2 billion ZION
+        'purpose': 'Cosmic Mining Operator - Consciousness Bonus Pool',
+        'amount': 1_650_000_000,  # 1.65B ZION (20% of mining pool)
         'type': 'mining'
     },
     'ZION_ENLIGHTENED_004A5DBD12FDCAACEDCB5384DDC035': {
-        'purpose': 'Enlightened Mining Operator',
-        'amount': 2_000_000_000,  # 2 billion ZION
+        'purpose': 'Enlightened Mining Operator - Consciousness Bonus Pool',
+        'amount': 1_650_000_000,  # 1.65B ZION (20% of mining pool)
         'type': 'mining'
     },
     'ZION_TRANSCENDENT_6BD30CB1835013503A8167D9CD86E0': {
-        'purpose': 'Transcendent Mining Operator',
-        'amount': 2_000_000_000,  # 2 billion ZION
+        'purpose': 'Transcendent Mining Operator - Consciousness Bonus Pool',
+        'amount': 1_650_000_000,  # 1.65B ZION (20% of mining pool)
         'type': 'mining'
     },
+    # Subtotal Mining Operators: 8.25B ZION
+    
+    # HIRANYAGARBHA DAO WINNERS - 1.75B ZION (unlocks Oct 10, 2035)
+    'ZION_HIRANYAGARBHA_WINNER_1ST_GOLDEN_EGG_CEO': {
+        'purpose': 'Chief Enlightenment Officer (Golden Egg Winner) - DAO Seat 1',
+        'amount': 1_000_000_000,  # 1B ZION
+        'type': 'dao_governance',
+        'unlock_date': '2035-10-10',
+        'voting_weight': 0.40,
+        'role': 'Chief Enlightenment Officer'
+    },
+    'ZION_HIRANYAGARBHA_WINNER_2ND_SILVER_SEEKER_CCO': {
+        'purpose': 'Chief Consciousness Officer (XP Leader #1) - DAO Seat 2',
+        'amount': 500_000_000,  # 500M ZION
+        'type': 'dao_governance',
+        'unlock_date': '2035-10-10',
+        'voting_weight': 0.25,
+        'role': 'Chief Consciousness Officer'
+    },
+    'ZION_HIRANYAGARBHA_WINNER_3RD_BRONZE_BODHISATTVA_CAO': {
+        'purpose': 'Chief Awakening Officer (XP Leader #2) - DAO Seat 3',
+        'amount': 250_000_000,  # 250M ZION
+        'type': 'dao_governance',
+        'unlock_date': '2035-10-10',
+        'voting_weight': 0.15,
+        'role': 'Chief Awakening Officer'
+    },
+    # Subtotal DAO Winners: 1.75B ZION
+    
+    # INFRASTRUCTURE & DEVELOPMENT - 4.34B ZION
     'ZION_DEVELOPMENT_TEAM_FUND_378614887FEA27791540F45': {
         'purpose': 'Development Team Fund - DAO Governance',
-        'amount': 1_000_000_000,  # 1 billion ZION
+        'amount': 1_000_000_000,  # 1B ZION
         'type': 'development'
     },
     'ZION_NETWORK_INFRASTRUCTURE_SITA_B5F3BE9968A1D90': {
         'purpose': 'Network Infrastructure (SITA)',
-        'amount': 1_000_000_000,  # 1 billion ZION
+        'amount': 1_000_000_000,  # 1B ZION
         'type': 'infrastructure'
     },
     'ZION_CHILDREN_FUTURE_FUND_1ECCB72BC30AADD086656A59': {
         'purpose': 'Children Future Fund - Humanitarian DAO',
-        'amount': 1_000_000_000,  # 1 billion ZION
+        'amount': 1_000_000_000,  # 1B ZION
         'type': 'charity'
     },
-    'ZION_MAITREYA_BUDDHA_D7A371ABD1FF1C5D42AB02AAE4F57': {
-        'purpose': 'Network Administrator - DAO Transition Fund',
-        'amount': 1_000_000_000,  # 1 billion ZION
-        'type': 'admin'
+    'ZION_MAITREYA_BUDDHA_DAO_ADMIN_D7A371ABD1FF1C5D42AB02': {
+        'purpose': 'Maitreya Buddha - DAO Admin & Genesis Creator',
+        'amount': 1_000_000_000,  # 1B ZION
+        'type': 'admin',
+        'voting_weight': 0.20,
+        'veto_power': True
     },
-    'ZION_ON_THE_STAR_0B461AB5BCACC40D1ECE95A2D82030': {
-        'purpose': 'Genesis Reward - Community Mining',
-        'amount': 342_857_143,  # 342.857M ZION (matching docs)
+    'ZION_ON_THE_STAR_GENESIS_CREATOR_RENT_0B461AB5BCACC': {
+        'purpose': 'Genesis Creator Lifetime Rent (0.33% of block rewards)',
+        'amount': 342_857_143,  # 342.857M ZION
         'type': 'genesis'
     }
+    # Subtotal Infrastructure: 4.34B ZION
 }
+
+# EKONOMICKÁ VALIDACE
+PREMINE_TOTAL = sum(addr['amount'] for addr in ZION_PREMINE_ADDRESSES.values())
+assert PREMINE_TOTAL == 14_342_857_143, f"Premine total mismatch! Expected 14.34B, got {PREMINE_TOTAL:,}"
+
+MINING_OPERATORS_TOTAL = sum(addr['amount'] for addr in ZION_PREMINE_ADDRESSES.values() if addr['type'] == 'mining')
+assert MINING_OPERATORS_TOTAL == 8_250_000_000, f"Mining operators mismatch! Expected 8.25B, got {MINING_OPERATORS_TOTAL:,}"
+
+DAO_WINNERS_TOTAL = sum(addr['amount'] for addr in ZION_PREMINE_ADDRESSES.values() if addr['type'] == 'dao_governance')
+assert DAO_WINNERS_TOTAL == 1_750_000_000, f"DAO winners mismatch! Expected 1.75B, got {DAO_WINNERS_TOTAL:,}"
+
+print(f"✅ Premine validation OK:")
+print(f"   Mining Operators: {MINING_OPERATORS_TOTAL:,} ZION")
+print(f"   DAO Winners: {DAO_WINNERS_TOTAL:,} ZION")
+print(f"   Infrastructure: {PREMINE_TOTAL - MINING_OPERATORS_TOTAL - DAO_WINNERS_TOTAL:,} ZION")
+print(f"   TOTAL PREMINE: {PREMINE_TOTAL:,} ZION")
 
 # GLOBÁLNÍ FUNKCE PRO JEDNODUCHOU INTEGRACI
 def get_seed_nodes(network_type: str = "production") -> List[str]:

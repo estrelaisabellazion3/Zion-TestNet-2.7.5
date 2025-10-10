@@ -3,14 +3,15 @@
 🎮 ZION CONSCIOUSNESS MINING GAME 🎮
 ====================================
 
-3-letá gamifikovaná distribuce 10B ZION s AI interakcí!
+10-letá gamifikovaná distribuce 8.25B ZION s AI interakcí!
 Miners postupují přes consciousness levely pomocí AI úkolů, quizů a achievementů.
 
-Ekonomický model:
-- 10,000,000,000 ZION k distribuci za 3 roky
-- 3,333,333,333 ZION/rok
-- 6,341.96 ZION/blok jako BONUS k základnímu reward
+Ekonomický model (UPDATED):
+- 8,250,000,000 ZION k distribuci za 10 let (2025-2035)
+- 825,000,000 ZION/rok
+- 1,569.63 ZION/blok jako BONUS k základnímu reward
 - Bonus se násobí consciousness multiplierem minera!
+- 1.75B ZION reserved pro DAO winners (unlocks 2035)
 
 Consciousness Levels (hra):
 1. PHYSICAL (1.0x) - Začátečník
@@ -130,12 +131,12 @@ class Achievement:
 class ConsciousnessMiningGame:
     """Hlavní herní engine pro consciousness mining"""
     
-    # === EKONOMICKÝ MODEL - 10 LET ===
-    TOTAL_PREMINE_BONUS = 10_000_000_000  # 10B ZION
+    # === EKONOMICKÝ MODEL - 10 LET (UPDATED) ===
+    TOTAL_PREMINE_BONUS = 8_250_000_000  # 8.25B ZION (1.75B reserved for DAO)
     DISTRIBUTION_YEARS = 10  # 2025-2035 - decade-long consciousness journey!
     BLOCKS_PER_YEAR = 525_600  # 1 min blocks
     TOTAL_BLOCKS = BLOCKS_PER_YEAR * DISTRIBUTION_YEARS  # 5,256,000 bloků
-    BONUS_PER_BLOCK = TOTAL_PREMINE_BONUS / TOTAL_BLOCKS  # 1,902.59 ZION
+    BONUS_PER_BLOCK = TOTAL_PREMINE_BONUS / TOTAL_BLOCKS  # 1,569.63 ZION
     
     # === XP SYSTÉM ===
     XP_PER_SHARE = 10
