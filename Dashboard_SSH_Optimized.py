@@ -833,8 +833,9 @@ class ZIONSSHDashboard:
             self.update_pool_stats()
             self.update_mining_stats()
             self.root.after(0, lambda: self.update_status("✅ Refresh complete"))
-        except Exception as e:
-            self.root.after(0, lambda: self.update_status(f"❌ Refresh error: {e}"))
+        except Exception as ex:
+            error_msg = str(ex)
+            self.root.after(0, lambda: self.update_status(f"❌ Refresh error: {error_msg}"))
     
     def check_ssh_connection(self):
         """Check and display SSH connection status"""
