@@ -168,14 +168,6 @@ class ZIONSSHDashboard:
         # SSH connection
         self.ssh = SSHConnectionManager(SSH_CONFIG)
         
-        # Wallet session
-        self.wallet_session = {
-            'logged_in': False,
-            'address': '',
-            'balance': 0.0,
-            'login_time': None
-        }
-        
         # Mining
         self.miner = None
         self.mining_active = False
@@ -333,20 +325,15 @@ class ZIONSSHDashboard:
         self.create_matrix_button(control_frame, "[ START MINING ]", self.start_mining).pack(side=tk.LEFT, padx=(0, 15))
         self.create_matrix_button(control_frame, "[ STOP MINING ]", self.stop_mining).pack(side=tk.LEFT, padx=(0, 15))
         
-        # Wallet login section
-        wallet_frame = tk.Frame(control_frame, bg='#000000')
-        wallet_frame.pack(side=tk.RIGHT, padx=(15, 0))
+        # Connection status on the right
+        status_frame = tk.Frame(control_frame, bg='#000000')
+        status_frame.pack(side=tk.RIGHT, padx=(15, 0))
         
-        self.wallet_status_label = tk.Label(wallet_frame, text="[ AUTHENTICATION REQUIRED ]", 
-                                           fg='#ff0040', bg='#000000', font=('Courier New', 9, 'bold'))
-        self.wallet_status_label.pack(side=tk.LEFT, padx=(0, 12))
-        
-        self.login_button = self.create_matrix_button(wallet_frame, "[ ENTER MATRIX ]", self.show_wallet_login)
-        self.login_button.pack(side=tk.LEFT, padx=(0, 8))
-        
-        self.logout_button = self.create_matrix_button(wallet_frame, "[ EXIT ]", self.wallet_logout)
-        self.logout_button.pack(side=tk.LEFT)
-        self.logout_button.pack_forget()  # Initially hidden
+        self.connection_status_label = tk.Label(status_frame, 
+                                               text="[ SSH: CONNECTING... ]", 
+                                               fg='#ffaa00', bg='#000000', 
+                                               font=('Courier New', 10, 'bold'))
+        self.connection_status_label.pack(side=tk.LEFT, padx=(0, 12))
 
         # ========== QUICK STATS CARDS ==========
         self.setup_quick_stats(main_frame)
@@ -377,10 +364,10 @@ class ZIONSSHDashboard:
         stats_frame.pack(fill=tk.X, pady=(0, 20))
         
         # Create 4 stats cards
-        self.create_stats_card(stats_frame, ">", "SSH STATUS", "⚫ CHECKING...", 0)
+        self.create_stats_card(stats_frame, ">", "SSH STATUS", "⚫ CONNECTING...", 0)
         self.create_stats_card(stats_frame, ">", "BLOCK HEIGHT", "0", 1)
-        self.create_stats_card(stats_frame, ">", "HASHRATE", "0.000 H/s", 2)
-        self.create_stats_card(stats_frame, ">", "ZION BALANCE", "0.00000000", 3)
+        self.create_stats_card(stats_frame, ">", "LOCAL HASHRATE", "0.000 H/s", 2)
+        self.create_stats_card(stats_frame, ">", "POOL HASHRATE", "0.00 H/s", 3)
 
     def create_stats_card(self, parent, icon, title, value, column):
         """Create a beautiful Matrix stats card with rounded neon panel"""
@@ -417,151 +404,11 @@ class ZIONSSHDashboard:
             self.ssh_status_value = value_label
         elif title == "BLOCK HEIGHT":
             self.block_height_value = value_label
-        elif title == "HASHRATE":
-            self.hashrate_value = value_label
-        elif title == "ZION BALANCE":
-            self.balance_value = value_label
-    
-    # ========== WALLET LOGIN DIALOG ==========
-    def show_wallet_login(self):
-        """Show beautiful Matrix wallet login dialog"""
-        login_window = tk.Toplevel(self.root)
-        login_window.title("🔐 ZION Matrix Wallet Login")
-        login_window.geometry("450x350")
-        login_window.configure(bg='#000000')
-        login_window.resizable(False, False)
-        
-        # Center window
-        login_window.transient(self.root)
-        login_window.grab_set()
-        
-        # Header with Matrix style
-        header_frame = tk.Frame(login_window, bg='#000000')
-        header_frame.pack(fill=tk.X, pady=20, padx=20)
-        
-        tk.Label(header_frame, text="🔐 ENTER THE MATRIX", 
-                font=('Courier New', 18, 'bold'), fg='#00ff41', bg='#000000').pack()
-        
-        tk.Label(header_frame, text="> Follow the white rabbit...", 
-                font=('Courier New', 10, 'italic'), fg='#00aa00', bg='#000000').pack(pady=(5, 0))
-        
-        # Form with rounded panel
-        form_frame = tk.Frame(login_window, bg='#000000')
-        form_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
-        
-        # Wallet Address
-        tk.Label(form_frame, text="WALLET ADDRESS:", font=('Courier New', 10, 'bold'),
-                bg='#000000', fg='#00dd00').pack(anchor=tk.W, pady=(0, 5))
-        address_entry = tk.Entry(form_frame, width=50, font=('Courier New', 10), 
-                                bg='#001100', fg='#00ff41', insertbackground='#00ff41',
-                                relief=tk.FLAT, bd=5)
-        address_entry.pack(fill=tk.X, pady=(0, 15))
-        address_entry.focus()
-        
-        # Optional Password
-        tk.Label(form_frame, text="PASSWORD (Optional):", font=('Courier New', 10, 'bold'),
-                bg='#000000', fg='#00dd00').pack(anchor=tk.W, pady=(0, 5))
-        token_entry = tk.Entry(form_frame, width=50, font=('Courier New', 10),
-                              bg='#001100', fg='#00ff41', insertbackground='#00ff41',
-                              relief=tk.FLAT, bd=5, show='*')
-        token_entry.pack(fill=tk.X, pady=(0, 15))
-        
-        # Status
-        status_label = tk.Label(form_frame, text="", font=('Courier New', 9),
-                               bg='#000000', fg='#ffaa00')
-        status_label.pack(pady=(0, 10))
-        
-        # Buttons
-        button_frame = tk.Frame(form_frame, bg='#000000')
-        button_frame.pack(fill=tk.X, pady=(10, 0))
-        
-        def attempt_login():
-            address = address_entry.get().strip()
-            token = token_entry.get().strip()
-            if not address:
-                status_label.config(text="⚠️ Address required!", fg='#ff3366')
-                return
-            
-            status_label.config(text="⏳ Authenticating...", fg='#ffaa00')
-            login_window.update()
-            
-            success, balance = self.validate_wallet_login(address, token)
-            if success:
-                self.wallet_session = {
-                    'logged_in': True,
-                    'address': address,
-                    'balance': balance,
-                    'login_time': datetime.now()
-                }
-                self.update_wallet_ui()
-                login_window.destroy()
-                messagebox.showinfo("Success", f"✅ Welcome to the Matrix!\n\nWallet: {address[:20]}...")
-            else:
-                status_label.config(text="❌ Authentication failed!", fg='#ff3366')
-        
-        def cancel_login():
-            login_window.destroy()
-        
-        self.create_matrix_button(button_frame, "[ LOGIN ]", attempt_login).pack(side=tk.LEFT, padx=(0, 10))
-        self.create_matrix_button(button_frame, "[ CANCEL ]", cancel_login).pack(side=tk.LEFT)
-        
-        # Demo hint
-        demo_frame = tk.Frame(form_frame, bg='#000000')
-        demo_frame.pack(fill=tk.X, pady=(20, 0))
-        tk.Label(demo_frame, text="� Demo: Zion1MainNetWallet123456789", 
-                font=('Courier New', 8), fg='#008800', bg='#000000').pack()
+        elif title == "LOCAL HASHRATE":
+            self.local_hashrate_value = value_label
+        elif title == "POOL HASHRATE":
+            self.pool_hashrate_value = value_label
 
-    def validate_wallet_login(self, address, token=""):
-        """Validate wallet and fetch balance"""
-        try:
-            # Try SSH blockchain query first
-            if self.ssh.connected:
-                cmd = f'cd /root/zion && python3 -c "import sys; sys.path.insert(0, \\"/root/zion\\"); from zion_unified import get_balance; print(get_balance(\\"{address}\\"))" 2>/dev/null || echo "0.0"'
-                stdout, stderr, error = self.ssh.execute_command(cmd)
-                if stdout:
-                    balance = float(stdout.strip())
-                    return (True, balance)
-            
-            # Fallback: accept any address for demo
-            return (True, 0.0)
-            
-        except Exception as e:
-            print(f"Wallet validation error: {e}")
-            return (False, 0.0)
-
-    def update_wallet_ui(self):
-        """Update UI after wallet login/logout"""
-        if self.wallet_session['logged_in']:
-            addr = self.wallet_session['address']
-            balance = self.wallet_session['balance']
-            self.wallet_status_label.config(
-                text=f"[ {addr[:10]}...{addr[-6:]} ]",
-                fg='#00ff41'
-            )
-            self.balance_value.config(text=f"{balance:.8f}")
-            self.login_button.pack_forget()
-            self.logout_button.pack(side=tk.LEFT)
-        else:
-            self.wallet_status_label.config(
-                text="[ AUTHENTICATION REQUIRED ]",
-                fg='#ff0040'
-            )
-            self.balance_value.config(text="0.00000000")
-            self.logout_button.pack_forget()
-            self.login_button.pack(side=tk.LEFT, padx=(0, 8))
-
-    def wallet_logout(self):
-        """Logout from wallet"""
-        self.wallet_session = {
-            'logged_in': False,
-            'address': '',
-            'balance': 0.0,
-            'login_time': None
-        }
-        self.update_wallet_ui()
-        messagebox.showinfo("Logout", "👋 You have exited the Matrix")
-
-    
     def create_overview_tab(self):
         """Overview tab with key metrics"""
         tab = tk.Frame(self.notebook, bg='#001100')
