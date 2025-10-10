@@ -837,6 +837,55 @@ class ZIONSSHDashboard:
             error_msg = str(ex)
             self.root.after(0, lambda: self.update_status(f"❌ Refresh error: {error_msg}"))
     
+    def update_blockchain_stats(self):
+        """Update blockchain statistics from SSH"""
+        try:
+            data = self.ssh.get_blockchain_stats()
+            if data:
+                self.blockchain_stats = data
+                # Update quick stats card
+                height = data.get('height', 0)
+                self.block_height_value.config(text=str(height))
+        except Exception as e:
+            print(f"Blockchain stats error: {e}")
+    
+    def update_pool_stats(self):
+        """Update pool statistics from SSH"""
+        try:
+            data = self.ssh.get_pool_stats()
+            if data:
+                self.pool_stats = data
+                # Update quick stats card
+                pool_hr = data.get('pool_hashrate', 0)
+                if pool_hr > 1000000:
+                    self.pool_hashrate_value.config(text=f"{pool_hr/1000000:.2f} MH/s")
+                elif pool_hr > 1000:
+                    self.pool_hashrate_value.config(text=f"{pool_hr/1000:.2f} KH/s")
+                else:
+                    self.pool_hashrate_value.config(text=f"{pool_hr:.2f} H/s")
+        except Exception as e:
+            print(f"Pool stats error: {e}")
+    
+    def update_mining_stats(self):
+        """Update local mining statistics"""
+        try:
+            if self.miner and self.mining_active:
+                stats = self.miner.get_mining_stats()
+                if stats:
+                    self.mining_stats = stats
+                    # Update quick stats card
+                    hr = stats.get('hashrate', 0)
+                    if hr > 1000000:
+                        self.local_hashrate_value.config(text=f"{hr/1000000:.2f} MH/s")
+                    elif hr > 1000:
+                        self.local_hashrate_value.config(text=f"{hr/1000:.2f} KH/s")
+                    else:
+                        self.local_hashrate_value.config(text=f"{hr:.2f} H/s")
+            else:
+                self.local_hashrate_value.config(text="0.00 H/s")
+        except Exception as e:
+            print(f"Mining stats error: {e}")
+    
     def check_ssh_connection(self):
         """Check and display SSH connection status"""
         if self.ssh.connected:
@@ -932,7 +981,36 @@ Click OK to try connecting...
     def start_monitoring(self):
         """Start monitoring loop"""
         self.monitoring_active = True
+        # Try to connect SSH
+        threading.Thread(target=self.connect_ssh_background, daemon=True).start()
+        # Start update loop
         self.update_all_stats()
+    
+    def connect_ssh_background(self):
+        """Connect to SSH in background"""
+        try:
+            if self.ssh.connect():
+                self.root.after(0, lambda: self.ssh_status_value.config(
+                    text="✅ CONNECTED",
+                    fg='#00ff41'
+                ))
+                self.root.after(0, lambda: self.connection_status_label.config(
+                    text=f"[ SSH: {SSH_CONFIG['host']} ]",
+                    fg='#00ff41'
+                ))
+                self.root.after(0, lambda: self.update_status("✅ SSH connected"))
+            else:
+                self.root.after(0, lambda: self.ssh_status_value.config(
+                    text="❌ FAILED",
+                    fg='#ff3366'
+                ))
+                self.root.after(0, lambda: self.connection_status_label.config(
+                    text="[ SSH: DISCONNECTED ]",
+                    fg='#ff3366'
+                ))
+                self.root.after(0, lambda: self.update_status(f"❌ SSH failed: {self.ssh.last_error}"))
+        except Exception as e:
+            print(f"SSH connect error: {e}")
     
     def update_all_stats(self):
         """Update all statistics"""
