@@ -489,16 +489,6 @@ class ZionUniversalPool:
         self.pool_fee_percent = pool_config['fee_percent']
         self.payout_threshold = pool_config['payout_threshold']
         
-        # Economic model - fee distribution
-        self.humanitarian_fee_percent = 0.10  # 10% for Children Future Fund
-        self.dev_team_fee_percent = 0.01      # 1% for Development Team
-        self.genesis_fee_percent = 0.0033     # 0.33% Genesis Creator Lifetime Rent 💰
-        
-        # Fee recipient addresses
-        self.humanitarian_address = 'ZION_CHILDREN_FUTURE_FUND_1ECCB72BC30AADD086656A59'
-        self.dev_team_address = 'ZION_DEVELOPMENT_TEAM_FUND_378614887FEA27791540F45'
-        self.genesis_creator_address = 'ZION_ON_THE_STAR_0B461AB5BCACC40D1ECE95A2D82030'
-        
         # Real blockchain integration
         self.blockchain = NewZionBlockchain()
         
@@ -838,59 +828,36 @@ class ZionUniversalPool:
         logger.info(f"Started new block at height {self.current_block_height}")
 
     def calculate_block_rewards(self, block: PoolBlock) -> None:
-        """Calculate proportional rewards with complete economic model:
-        - 10% Humanitarian (Children Future Fund)
-        - 1% Development Team
-        - 0.33% Genesis Creator (Lifetime Rent 💰)
-        - ~88.67% Miners (with eco bonuses)
-        """
+        """Calculate proportional rewards for block with eco-friendly bonuses"""
         if block.total_shares == 0:
             return
 
-        # === STEP 1: Calculate all fees from gross reward ===
-        gross_reward = block.reward_amount
+        # Calculate pool fee (reduce fee for eco algorithms)
+        base_pool_fee = block.reward_amount * self.pool_fee_percent
+        eco_fee_reduction = 0.0
         
-        # Fixed allocations (not subject to eco reduction)
-        humanitarian_amount = gross_reward * self.humanitarian_fee_percent  # 10%
-        dev_team_amount = gross_reward * self.dev_team_fee_percent          # 1%
-        genesis_amount = gross_reward * self.genesis_fee_percent            # 0.33%
+        # Count eco-friendly shares for fee reduction
+        eco_shares = 0
+        for address, shares in block.miner_shares.items():
+            stats = self.get_miner_stats(address)
+            if stats.algorithm in ['randomx', 'yescrypt']:
+                eco_shares += shares
+                
+        eco_ratio = eco_shares / block.total_shares if block.total_shares > 0 else 0
+        eco_fee_reduction = base_pool_fee * 0.2 * eco_ratio  # Up to 20% fee reduction
         
-        # Total fees
-        total_fees = humanitarian_amount + dev_team_amount + genesis_amount
-        
-        # Remaining for miners
-        miner_reward_total = gross_reward - total_fees
-        
-        # === STEP 2: Log fee distribution ===
-        logger.info(f"💰 Block #{block.height} Reward Distribution:")
-        logger.info(f"   Gross Reward: {gross_reward:.2f} ZION (100%)")
-        logger.info(f"   🤲 Humanitarian: {humanitarian_amount:.2f} ZION (10%)")
-        logger.info(f"   👨‍💻 Dev Team: {dev_team_amount:.2f} ZION (1%)")
-        logger.info(f"   🌟 Genesis Creator: {genesis_amount:.2f} ZION (0.33%) - Lifetime Rent!")
-        logger.info(f"   ⛏️  Miner Pool: {miner_reward_total:.2f} ZION (~88.67%)")
-        
-        # === STEP 3: Credit fee recipients ===
-        # Humanitarian fund
-        humanitarian_stats = self.get_miner_stats(self.humanitarian_address)
-        humanitarian_stats.balance_pending += humanitarian_amount
-        
-        # Development team
-        dev_stats = self.get_miner_stats(self.dev_team_address)
-        dev_stats.balance_pending += dev_team_amount
-        
-        # Genesis creator (your lifetime rent! 💰)
-        genesis_stats = self.get_miner_stats(self.genesis_creator_address)
-        genesis_stats.balance_pending += genesis_amount
-        logger.info(f"   ✅ Genesis rent credited to creator!")
-        
-        # === STEP 4: Distribute to miners with eco bonuses ===
+        pool_fee_amount = base_pool_fee - eco_fee_reduction
+        miner_reward_total = block.reward_amount - pool_fee_amount
+
+        logger.info(f"Block reward: {block.reward_amount} ZION, Pool fee: {pool_fee_amount:.4f} (eco reduction: {eco_fee_reduction:.4f}), Miner total: {miner_reward_total}")
+
+        # Calculate proportional rewards with eco bonuses
         for address, miner_shares in block.miner_shares.items():
             if miner_shares > 0:
-                # Base proportion
                 proportion = miner_shares / block.total_shares
                 base_reward = miner_reward_total * proportion
                 
-                # Apply eco-friendly algorithm bonus
+                # Apply eco-friendly algorithm bonus/penalty
                 stats = self.get_miner_stats(address)
                 algorithm = stats.algorithm
                 eco_multiplier = self.eco_rewards.get(algorithm, 1.0)
@@ -901,7 +868,7 @@ class ZionUniversalPool:
                 stats.balance_pending += final_reward
                 
                 eco_info = f"(eco: {eco_multiplier}x)" if eco_multiplier != 1.0 else ""
-                logger.info(f"   Miner {address[:20]}... [{algorithm}]: {miner_shares} shares ({proportion:.4f}) = {final_reward:.8f} ZION {eco_info}")
+                logger.info(f"Miner {address} [{algorithm}]: {miner_shares} shares ({proportion:.4f}) = {final_reward:.8f} ZION {eco_info}")
 
     def calculate_block_rewards_via_blockchain(self, block: PoolBlock) -> None:
         """Calculate proportional rewards and create blockchain transactions"""
