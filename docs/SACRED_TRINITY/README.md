@@ -6,6 +6,17 @@
 
 ---
 
+## 📖 Table of Contents
+
+1. [👑 RAMA](#-rama-the-genesis-creator) - Yeshuae Amon Ra (Genesis Creator)
+2. [👸 SÍTA](#-síta-guardian-of-humanity) - Issobela (Guardian of Humanity) **← KEY ROLE**
+3. [🐵 HANUMAN](#-hanuman-guardian-of-nature) - Environmental Guardian
+4. [🙏 MAITREYA BUDDHA](#-maitreya-buddha-the-transition-guide) - Issobela's Brother, DAO Admin
+5. [📜 Expanded Documentation](#-expanded-documentation-separate-pages) - Individual files for each
+6. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+
+---
+
 ## 🌟 The Divine Architecture of ZION
 
 **ZION is not just blockchain. It is a sacred covenant encoded in technology.**
