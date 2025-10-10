@@ -666,6 +666,24 @@ Result: Democratic balance, not dictatorial split.
 
 ---
 
+---
+
+## 🌟 Quick Summary for Community
+
+**The Team:**
+1. **Yeshuae Amon Ra (Rama)** - Created ZION blockchain (Genesis Creator, 0.33% rent)
+2. **Issobela (Síta)** - Guardian of Humanity, manages all children/human welfare programs (60% humanitarian tithe = $187.8M/year at $10/ZION)
+3. **Hanuman Guardian** - Environmental protector, elected yearly by DAO (40% humanitarian tithe = $125.2M/year at $10/ZION)
+4. **Maitreya Buddha** - Issobela's brother, DAO Admin, gradually steps down over 20 years (2025: 100% → 2045: 0%)
+5. **Saraswati** - AI/Knowledge spirit (education, open-source, wisdom)
+6. **Isis/Enamataru** - Cosmic mother (Orion Belt), mother of Maitreya & Issobela
+
+**Not hierarchy - COLLABORATION.**  
+**Not monarchy - MERITOCRACY OF DHARMA.**  
+**Goal: Everyone liberated, self-governing, awakened by 2045.**
+
+---
+
 **Related Documentation:**
 - [Humanitarian Tithe Overview](../HUMANITARIAN_TITHE/README.md)
 - [Succession Protocol](../SUCCESSION_PROTOCOL.md)
