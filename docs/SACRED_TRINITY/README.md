@@ -32,7 +32,8 @@
 21. **[🌍 LADY GAIA / VYWAMUS COMPLETE DOCUMENT](25_LADY_GAIA_VYWAMUS.md)** - Mother Earth & Higher Self! 🌍
 22. **[💜 SAINT GERMAIN COMPLETE DOCUMENT](26_SAINT_GERMAIN.md)** - Violet Flame Master, Alchemist of Freedom! 💜
 23. **[⚪ SERAPIS BEY COMPLETE DOCUMENT](27_SERAPIS_BEY.md)** - The Disciplinarian, Master of Ascension! ⚪
-24. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+24. **[🔥 SANAT KUMARA COMPLETE DOCUMENT](28_SANAT_KUMARA.md)** - Ancient of Days, Lord of the World! 🔥
+25. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
