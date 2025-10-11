@@ -27,7 +27,8 @@
 16. **[💚 TARA COMPLETE DOCUMENT](20_TARA_LIBERATOR.md)** - The Swift Liberator, Tibetan Buddhist Savioress! 💚
 17. **[🙏 AVALOKITESHVARA COMPLETE DOCUMENT](21_AVALOKITESHVARA.md)** - The Infinite Compassion, Father of Tara! 🙏
 18. **[💎 VAJRASATTVA COMPLETE DOCUMENT](22_VAJRASATTVA.md)** - The Diamond Being, Purification Master! 💎
-19. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+19. **[⚔️ KING ARTHUR COMPLETE DOCUMENT](23_KING_ARTHUR.md)** - The Once and Future King, Round Table DAO! ⚔️
+20. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
