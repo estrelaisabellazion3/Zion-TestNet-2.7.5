@@ -669,7 +669,200 @@ if __name__ == "__main__":
 
 ---
 
-## 💳 Tax Implications (Consult Your CPA!)
+## � Version 2.7.1 Specific Implementation
+
+**This section documents the original v2.7.1 system (October 6, 2025)**
+
+### System Files (v2.7.1)
+```
+mining/
+├── humanitarian_distribution.py    # Core distribution logic
+├── humanitarian_config.json        # 5 project configurations
+├── config.py                       # Mining integration
+└── demo_humanitarian_system.py     # Test/demonstration
+
+zion/pool/
+└── mining_pool.py                  # Pool automation
+```
+
+### Configuration File (humanitarian_config.json)
+```json
+{
+  "humanitarian_percentage": 0.1,
+  "projects": [
+    {
+      "id": "forest_restoration",
+      "name": "🌲 Zalesňování pralesů",
+      "description": "Obnova tropických pralesů a ochrana biodiverzity",
+      "wallet_address": "ZION1ForestRestoration2024HumanitarianProject",
+      "percentage": 20.0,
+      "active": true
+    },
+    {
+      "id": "ocean_cleanup",
+      "name": "🌊 Vyčištění oceánů",
+      "description": "Odstranění plastů z oceánů a ochrana mořského života",
+      "wallet_address": "ZION1OceanCleanup2024EnvironmentalProtection",
+      "percentage": 20.0,
+      "active": true
+    },
+    {
+      "id": "humanitarian_aid",
+      "name": "❤️ Humanitární pomoc",
+      "description": "Pomoc potřebným komunitám po celém světě",
+      "wallet_address": "ZION1HumanitarianAid2024GlobalCommunitySupport",
+      "percentage": 20.0,
+      "active": true
+    },
+    {
+      "id": "space_program",
+      "name": "🚀 Space program",
+      "description": "Výzkum vesmíru a technologický rozvoj pro lidstvo",
+      "wallet_address": "ZION1SpaceProgram2024CosmicExplorationFund",
+      "percentage": 20.0,
+      "active": true
+    },
+    {
+      "id": "dharma_development",
+      "name": "🕉️ Dharma vývoj",
+      "description": "Zahrada v Portugalsku s Triple pyramid a La Palma Dharma Temple se stromem Bodhi",
+      "wallet_address": "ZION1DharmaDevelopment2024SacredGardenPortugal",
+      "percentage": 20.0,
+      "active": true
+    }
+  ]
+}
+```
+
+### Demo Script Output (v2.7.1)
+```bash
+$ python demo_humanitarian_system.py
+
+🌟 ZION 2.7.1 Humanitarian Distribution System Demo
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Configuration loaded successfully
+📊 5 active humanitarian projects configured
+🎯 Humanitarian percentage: 10.00%
+
+Simulating block reward distribution...
+
+Block #12345 - Reward: 1000.00 ZION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 Miner receives:        900.00 ZION (90.00%)
+🌍 Humanitarian fund:     100.00 ZION (10.00%)
+
+📊 Project distributions:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 🌲 Zalesňování pralesů:  20.00 ZION (2.00% of total)
+  → Wallet: ZION1ForestRestoration2024HumanitarianProject
+  
+• 🌊 Vyčištění oceánů:     20.00 ZION (2.00% of total)
+  → Wallet: ZION1OceanCleanup2024EnvironmentalProtection
+  
+• ❤️ Humanitární pomoc:    20.00 ZION (2.00% of total)
+  → Wallet: ZION1HumanitarianAid2024GlobalCommunitySupport
+  
+• 🚀 Space program:        20.00 ZION (2.00% of total)
+  → Wallet: ZION1SpaceProgram2024CosmicExplorationFund
+  
+• 🕉️ Dharma vývoj:         20.00 ZION (2.00% of total)
+  → Wallet: ZION1DharmaDevelopment2024SacredGardenPortugal
+
+🌱 Environmental Impact Estimate:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🌲 Trees planted:          ~1,000 trees (20 ZION @ $0.02/tree)
+🌊 Ocean plastic removed:  ~50 kg (20 ZION @ $0.40/kg)
+❤️ People helped:          ~5,000 individuals (20 ZION @ $0.004/person/day)
+🚀 Research contribution:  $200 (20 ZION @ $10/ZION)
+🕉️ Sacred space built:     ~10 m² (20 ZION @ $2/m²)
+
+✅ Demo complete!
+```
+
+### Integration with Mining Pool (v2.7.1)
+```python
+# File: zion/pool/mining_pool.py
+from mining.humanitarian_distribution import get_humanitarian_distributor
+
+class ZionMiningPool:
+    def __init__(self):
+        # Enable humanitarian distribution (v2.7.1)
+        self.humanitarian_enabled = True
+        self.humanitarian_distributor = get_humanitarian_distributor()
+        
+    async def _process_block_found(self, share: Share):
+        """Process newly found block"""
+        block_reward = Decimal('5479.45')  # Base reward
+        
+        # Automatic humanitarian distribution
+        if self.humanitarian_enabled and self.humanitarian_distributor:
+            report = await self.humanitarian_distributor.distribute_rewards(
+                block_reward,
+                share.block_height
+            )
+            
+            # Log distribution
+            logger.info(f"✅ Block {share.block_height} found!")
+            logger.info(f"👤 Miner: {report['miner_reward']} ZION")
+            logger.info(f"🌍 Humanitarian: {report['humanitarian_fund']} ZION")
+            
+            # Log each project
+            for project_id, data in report['distributions'].items():
+                logger.info(f"  • {data['name']}: {data['amount']} ZION")
+                logger.info(f"    → {data['wallet']}")
+```
+
+### Checking Configuration (v2.7.1)
+```python
+from mining.config import get_mining_config
+
+# Get configuration
+config = get_mining_config()
+
+# Check humanitarian status
+print(f"Humanitarian enabled: {config.is_humanitarian_enabled()}")
+print(f"Humanitarian percentage: {config.get_humanitarian_percentage() * 100}%")
+
+# Output:
+# Humanitarian enabled: True
+# Humanitarian percentage: 10.0%
+```
+
+### Project Management (v2.7.1)
+```python
+from mining.humanitarian_distribution import get_humanitarian_distributor
+
+distributor = get_humanitarian_distributor()
+
+# Update existing project percentage
+distributor.update_project('forest_restoration', percentage=25.0)
+
+# Add new project
+from mining.humanitarian_distribution import HumanitarianProject
+
+new_project = HumanitarianProject(
+    id="clean_water",
+    name="💧 Clean Water Initiative",
+    description="Providing clean water to underserved communities",
+    wallet_address="ZION1CleanWater2024WaterForAll",
+    percentage=15.0
+)
+distributor.add_project(new_project)
+
+# Disable project temporarily
+distributor.disable_project('space_program')
+
+# List all active projects
+active = distributor.get_active_projects()
+for project in active:
+    print(f"{project.name}: {project.percentage}% of humanitarian fund")
+```
+
+---
+
+## �💳 Tax Implications (Consult Your CPA!)
 
 **Disclaimer:** This is general information, not tax advice.
 

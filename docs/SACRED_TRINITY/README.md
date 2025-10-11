@@ -1207,7 +1207,7 @@ From his writings, the **4 Puruṣārthas** (goals of human existence):
 ---
 
 **Related Documentation:**
-- [Humanitarian Tithe Overview](../HUMANITARIAN_TITHE/README.md)
+- [Humanitarian Distribution System (2.7.1)](../2.7.1/HUMANITARIAN_SYSTEM_README.md)
 - [Succession Protocol](../SUCCESSION_PROTOCOL.md)
 - [AI Safety Protocols](../AI_SAFETY_PROTOCOLS.md)
 - [Main Whitepaper](../WHITEPAPER_2025/README.md)

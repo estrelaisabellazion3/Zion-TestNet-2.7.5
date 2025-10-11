@@ -18,10 +18,11 @@ Humanitarian Tithe systém je rozsáhlý a zahrnuje několik verzí a projektů.
    - Transparency commitment
 
 2. **[02_VERSION_HISTORY.md](02_VERSION_HISTORY.md)** - Vývoj verzí
-   - Version 2.7.1: Initial Concept (10% tithe, 5 projects)
+   - Version 2.7.1: Initial Concept (10% tithe, 5 projects) **← FIRST IMPLEMENTATION**
    - Version 2.7.2: Evolution (15% tithe, quantum programs)
    - Version 2.7.3: Current Implementation (variable 10-25%)
    - Timeline & milestones
+   - **Technical implementation details (v2.7.1 code examples)**
 
 3. **[03_PROJECT_HUMANITA.md](03_PROJECT_HUMANITA.md)** - Project Humanita Details
    - Mission statement
@@ -43,6 +44,7 @@ Humanitarian Tithe systém je rozsáhlý a zahrnuje několik verzí a projektů.
    - Wallet addresses & transparency
    - Quarterly reporting
    - Tax implications
+   - **Version 2.7.1: Complete code implementation** (Python examples, config files, demo scripts)
 
 6. **[06_GOVERNANCE.md](06_GOVERNANCE.md)** - DAO Oversight
    - How funds are allocated
@@ -61,6 +63,29 @@ Humanitarian Tithe systém je rozsáhlý a zahrnuje několik verzí a projektů.
 ---
 
 ## 🎯 Quick Stats (2025-2070 Projection)
+
+### Version 2.7.1 Original Implementation (October 6, 2025)
+
+**Five Projects - Equal Distribution:**
+```
+10% Total Humanitarian Tithe
+├── 2% → 🌲 Zalesňování pralesů (Forest Restoration)
+├── 2% → 🌊 Vyčištění oceánů (Ocean Cleanup)
+├── 2% → ❤️ Humanitární pomoc (Humanitarian Aid)
+├── 2% → 🚀 Space Program (Cosmic Research)
+└── 2% → 🕉️ Dharma vývoj (Sacred Garden Portugal)
+
+Technical Files (v2.7.1):
+  • mining/humanitarian_distribution.py
+  • mining/humanitarian_config.json
+  • mining/config.py
+  • demo_humanitarian_system.py
+  
+See: 02_VERSION_HISTORY.md (Technical Implementation section)
+See: 05_POOL_MECHANISM.md (Version 2.7.1 Specific Implementation)
+```
+
+### Current Version 2.7.3 (October 10, 2025)
 
 ```
 HUMANITARIAN TITHE ALLOCATION
