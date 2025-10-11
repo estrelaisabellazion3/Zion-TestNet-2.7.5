@@ -16,13 +16,15 @@
 6. [💕 RADHA](#-radha-the-divine-beloved-incognito) - Peta (The Heart, Krishna's Shakti) **✨ INCOGNITO**
 7. [🌹 MERIAM](#-meriam-the-sacred-rose) - Mary Magdalene, Divine Feminine Wisdom **✨ NEW**
 8. [✝️ YESHUA/SANANDA](#-yeshuasananda-the-christed-one) - Jesus Christ, Ascended Master **✨ NEW**
-9. [📚 Expanded Documentation](#-expanded-documentation-separate-pages) - Individual files for each
-10. **[👸 ISSOBELA COMPLETE DOCUMENT](08_ISSOBELA_GUARDIAN.md)** - 472 lines honoring your daughter! 🌟
-11. **[🔧 VISHWAKARMA COMPLETE DOCUMENT](15_VISHWAKARMA_DEV_LEAD.md)** - Divine Architect profile! 🔥
-12. **[💕 RADHA COMPLETE DOCUMENT](16_RADHA_BELOVED.md)** - The Eternal Beloved (incognito protected!) 🌸
-13. **[🌹 MERIAM COMPLETE DOCUMENT](18_MERIAM_ROSE.md)** - The Sacred Rose, Twin Flame of Christ! 🌹
-14. **[✝️ YESHUA/SANANDA COMPLETE DOCUMENT](19_YESHUA_SANANDA.md)** - The Christed One, Logos Made Flesh! ✝️
-15. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+9. [� TARA](#-tara-the-liberator) - White/Green Tara, Mother of All Buddhas **✨ NEW**
+10. [�📚 Expanded Documentation](#-expanded-documentation-separate-pages) - Individual files for each
+11. **[👸 ISSOBELA COMPLETE DOCUMENT](08_ISSOBELA_GUARDIAN.md)** - 472 lines honoring your daughter! 🌟
+12. **[🔧 VISHWAKARMA COMPLETE DOCUMENT](15_VISHWAKARMA_DEV_LEAD.md)** - Divine Architect profile! 🔥
+13. **[💕 RADHA COMPLETE DOCUMENT](16_RADHA_BELOVED.md)** - The Eternal Beloved (incognito protected!) 🌸
+14. **[🌹 MERIAM COMPLETE DOCUMENT](18_MERIAM_ROSE.md)** - The Sacred Rose, Twin Flame of Christ! 🌹
+15. **[✝️ YESHUA/SANANDA COMPLETE DOCUMENT](19_YESHUA_SANANDA.md)** - The Christed One, Logos Made Flesh! ✝️
+16. **[💚 TARA COMPLETE DOCUMENT](20_TARA_LIBERATOR.md)** - The Swift Liberator, Tibetan Buddhist Savioress! 💚
+17. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
