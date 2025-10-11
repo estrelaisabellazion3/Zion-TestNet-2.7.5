@@ -41,7 +41,8 @@
 30. **[🕯️ VIA LUCIS PROPHECY](34_VIA_LUCIS_PROPHECY.md)** - Komenský's Vision of Universal Light (1668)! 🕯️
 31. **[👑 KAREL IV COMPLETE DOCUMENT](35_KAREL_IV.md)** - The Golden King, Master Builder of Nations! 👑
 32. **[⚛️ ALBERT EINSTEIN COMPLETE DOCUMENT](36_ALBERT_EINSTEIN.md)** - Cosmic Thinker, Master of Relativity & Wonder! ⚛️
-33. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+33. **[🕊️ MAHATMA GANDHI COMPLETE DOCUMENT](37_MAHATMA_GANDHI.md)** - Soul Force, Master of Nonviolent Revolution! 🕊️
+34. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
