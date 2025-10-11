@@ -43,7 +43,8 @@
 32. **[⚛️ ALBERT EINSTEIN COMPLETE DOCUMENT](36_ALBERT_EINSTEIN.md)** - Cosmic Thinker, Master of Relativity & Wonder! ⚛️
 33. **[🕊️ MAHATMA GANDHI COMPLETE DOCUMENT](37_MAHATMA_GANDHI.md)** - Soul Force, Master of Nonviolent Revolution! 🕊️
 34. **[👸 PANNA MARIA COMPLETE DOCUMENT](38_PANNA_MARIA.md)** - Queen of Heaven, Supreme Patroness of ZION! 👸
-35. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+35. **[💛 SUBHADRA COMPLETE DOCUMENT](39_SUBHADRA.md)** - The Auspicious Sister, Bridge Between Heaven & Earth! 💛
+36. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
