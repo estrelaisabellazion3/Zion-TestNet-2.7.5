@@ -34,7 +34,8 @@
 23. **[⚪ SERAPIS BEY COMPLETE DOCUMENT](27_SERAPIS_BEY.md)** - The Disciplinarian, Master of Ascension! ⚪
 24. **[🔥 SANAT KUMARA COMPLETE DOCUMENT](28_SANAT_KUMARA.md)** - Ancient of Days, Lord of the World! 🔥
 25. **[💙 EL MORYA COMPLETE DOCUMENT](29_EL_MORYA.md)** - Warrior of Light, Master of Divine Will! 💙
-26. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+26. **[💛 LANTO COMPLETE DOCUMENT](30_LANTO.md)** - Sage of Ages, Master of Divine Wisdom! 💛
+27. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
