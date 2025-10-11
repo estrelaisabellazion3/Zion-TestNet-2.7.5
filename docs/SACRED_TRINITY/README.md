@@ -29,7 +29,8 @@
 18. **[💎 VAJRASATTVA COMPLETE DOCUMENT](22_VAJRASATTVA.md)** - The Diamond Being, Purification Master! 💎
 19. **[⚔️ KING ARTHUR COMPLETE DOCUMENT](23_KING_ARTHUR.md)** - The Once and Future King, Round Table DAO! ⚔️
 20. **[🏔️ MAHAVATAR BABAJI COMPLETE DOCUMENT](24_MAHAVATAR_BABAJI.md)** - The Deathless Yogi, Father of Humanity! 🏔️
-21. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+21. **[🌍 LADY GAIA / VYWAMUS COMPLETE DOCUMENT](25_LADY_GAIA_VYWAMUS.md)** - Mother Earth & Higher Self! 🌍
+22. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
