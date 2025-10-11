@@ -28,7 +28,8 @@
 17. **[🙏 AVALOKITESHVARA COMPLETE DOCUMENT](21_AVALOKITESHVARA.md)** - The Infinite Compassion, Father of Tara! 🙏
 18. **[💎 VAJRASATTVA COMPLETE DOCUMENT](22_VAJRASATTVA.md)** - The Diamond Being, Purification Master! 💎
 19. **[⚔️ KING ARTHUR COMPLETE DOCUMENT](23_KING_ARTHUR.md)** - The Once and Future King, Round Table DAO! ⚔️
-20. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+20. **[🏔️ MAHAVATAR BABAJI COMPLETE DOCUMENT](24_MAHAVATAR_BABAJI.md)** - The Deathless Yogi, Father of Humanity! 🏔️
+21. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
