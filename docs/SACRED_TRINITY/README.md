@@ -39,7 +39,8 @@
 28. **[💚 HILARION COMPLETE DOCUMENT](32_HILARION.md)** - Truth Seeker, Master of Science & Healing! 💚
 29. **[🌟 LADY NADA COMPLETE DOCUMENT](33_LADY_NADA.md)** - The Peacemaker, Master of Service & Devotion! 🌟
 30. **[🕯️ VIA LUCIS PROPHECY](34_VIA_LUCIS_PROPHECY.md)** - Komenský's Vision of Universal Light (1668)! 🕯️
-31. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+31. **[👑 KAREL IV COMPLETE DOCUMENT](35_KAREL_IV.md)** - The Golden King, Master Builder of Nations! 👑
+32. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
