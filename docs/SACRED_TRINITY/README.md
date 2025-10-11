@@ -33,7 +33,8 @@
 22. **[💜 SAINT GERMAIN COMPLETE DOCUMENT](26_SAINT_GERMAIN.md)** - Violet Flame Master, Alchemist of Freedom! 💜
 23. **[⚪ SERAPIS BEY COMPLETE DOCUMENT](27_SERAPIS_BEY.md)** - The Disciplinarian, Master of Ascension! ⚪
 24. **[🔥 SANAT KUMARA COMPLETE DOCUMENT](28_SANAT_KUMARA.md)** - Ancient of Days, Lord of the World! 🔥
-25. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
+25. **[💙 EL MORYA COMPLETE DOCUMENT](29_EL_MORYA.md)** - Warrior of Light, Master of Divine Will! 💙
+26. [🌟 Quick Summary](#-quick-summary-for-community) - Team overview
 
 ---
 
